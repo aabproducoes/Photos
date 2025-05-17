@@ -1,0 +1,104 @@
+{
+  "categories": [
+    {
+      "name": "Lake",
+      "photos": [
+        {
+          "url": "https://images.unsplash.com/photo-1506744038136-46273834b3fb",
+          "title": "Serenity Over the Lake",
+          "alt": "Lake Photo 1"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
+          "title": "Morning Mist",
+          "alt": "Lake Photo 2"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1470770841072-3d6d6c2b9361",
+          "title": "Reflections",
+          "alt": "Lake Photo 3"
+        }
+      ]
+    },
+    {
+      "name": "Sunset",
+      "photos": [
+        {
+          "url": "https://images.unsplash.com/photo-1503803548691-8716805ae07f",
+          "title": "Golden Horizon",
+          "alt": "Sunset Photo 1"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869",
+          "title": "Twilight Glow",
+          "alt": "Sunset Photo 2"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1472131039891-3f982b6f68a4",
+          "title": "Fading Light",
+          "alt": "Sunset Photo 3"
+        }
+      ]
+    },
+    {
+      "name": "Landscape",
+      "photos": [
+        {
+          "url": "https://images.unsplash.com/photo-1501785886049-4cab625a1d0b",
+          "title": "Mountain Majesty",
+          "alt": "Landscape Photo 1"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1469474968028-566ce2e7e42e",
+          "title": "Rolling Hills",
+          "alt": "Landscape Photo 2"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1441974231531-c6227db76b6e",
+          "title": "Forest Path",
+          "alt": "Landscape Photo 3"
+        }
+      ]
+    },
+    {
+      "name": "Forest",
+      "photos": [
+        {
+          "url": "https://images.unsplash.com/photo-1448375240586-882707db888b",
+          "title": "Mystic Woods",
+          "alt": "Forest Photo 1"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1511497580567-2c5d697301d3",
+          "title": "Emerald Canopy",
+          "alt": "Forest Photo 2"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1473448912268-2022ce9509d8",
+          "title": "Sunlit Trail",
+          "alt": "Forest Photo 3"
+        }
+      ]
+    },
+    {
+      "name": "Mountain",
+      "photos": [
+        {
+          "url": "https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99",
+          "title": "Peak Serenity",
+          "alt": "Mountain Photo 1"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b",
+          "title": "Alpine Glow",
+          "alt": "Mountain Photo 2"
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1519681393784-d120267933ba",
+          "title": "Rugged Heights",
+          "alt": "Mountain Photo 3"
+        }
+      ]
+    }
+  ]
+}
