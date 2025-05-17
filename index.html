@@ -1,154 +1,242 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Photographer Portfolio</title>
-  <style>
-    /* —— Base Reset & Variables —— */
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    :root {
-      --gap: 1rem;
-      --radius: 8px;
-      --transition: 0.35s ease;
-      --text-bg: rgba(0,0,0,0.6);
-      --text-color: #fff;
-      --shadow-light: rgba(0,0,0,0.1);
-      --shadow-dark: rgba(0,0,0,0.2);
-    }
-    body {
-      font-family: Arial, sans-serif;
-      background: #111;
-      color: #eee;
-      padding: 2rem;
-      line-height: 1.4;
-    }
-    h1 { text-align: center; margin-bottom: 2rem; font-size: 2rem; }
-    /* —— Category Section —— */
-    .category {
-      margin-bottom: 3rem;
-    }
-    .category h2 {
-      font-size: 1.5rem;
-      margin-bottom: var(--gap);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      border-bottom: 2px solid #444;
-      padding-bottom: 0.25rem;
-    }
-    /* —— Grid —— */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-      gap: var(--gap);
-    }
-    /* —— Grid Item & Juice —— */
-    .grid-item {
-      position: relative;
-      overflow: hidden;
-      border-radius: var(--radius);
-      box-shadow: 0 4px 12px var(--shadow-light);
-    }
-    .grid-item img {
-      display: block;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform var(--transition);
-    }
-    .grid-item::before {
-      /* subtle frame overlay */
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      box-shadow: inset 0 0 0 2px rgba(255,255,255,0.2);
-    }
-    /* —— Preview Text —— */
-    .preview-text {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      padding: 0.5rem 0;
-      text-align: center;
-      background: var(--text-bg);
-      color: var(--text-color);
-      font-size: 0.9rem;
-      transform: translateY(100%);
-      opacity: 0;
-      transition: transform var(--transition), opacity var(--transition);
-    }
-    /* —— Hover Effects —— */
-    .grid-item:hover img {
-      transform: translateY(-10px) scale(1.05);
-    }
-    .grid-item:hover .preview-text {
-      transform: translateY(0);
-      opacity: 1;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photographer Portfolio</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #000; /* Black background */
+            color: #fff;
+            scroll-behavior: smooth; /* Smooth scroll */
+        }
+        header {
+            text-align: center;
+            padding: 100px 20px;
+            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e') center/cover no-repeat;
+            background-attachment: fixed; /* Parallax header */
+            color: white;
+            position: relative;
+        }
+        h1 {
+            margin: 0;
+            font-size: 3em;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        header p {
+            font-size: 1.2em;
+            margin-top: 10px;
+        }
+        .category {
+            padding: 40px 20px;
+            opacity: 0; /* For fade-in animation */
+            transform: translateY(20px);
+            transition: opacity 0.6s ease, transform 0.6s ease;
+        }
+        .category.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .category h2 {
+            text-align: center;
+            font-size: 2em;
+            margin-bottom: 20px;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .photo-container {
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 1 / 1; /* Square grid cells */
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            transition: box-shadow 0.3s ease;
+            perspective: 1000px; /* For 3D parallax effect */
+        }
+        .photo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Crops image to fill space */
+            transition: transform 0.3s ease;
+            transform-style: preserve-3d;
+        }
+        .preview-text {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4)); /* Gradient overlay */
+            color: white;
+            padding: 10px;
+            text-align: center;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        .photo-container:hover {
+            box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.7); /* Glow border */
+        }
+        .photo-container:hover img {
+            transform: scale(1.05); /* Subtle zoom effect */
+        }
+        .photo-container:hover .preview-text {
+            transform: translateY(0); /* Text slides up */
+        }
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #1a1a1a;
+            color: white;
+            position: relative;
+            width: 100%;
+        }
+    </style>
 </head>
 <body>
+    <header>
+        <h1>Photographer's Portfolio</h1>
+        <p>Explore stunning captures of nature's beauty</p>
+    </header>
 
-  <h1>My Photography Portfolio</h1>
+    <!-- Lake Category -->
+    <section class="category" id="lake">
+        <h2>Lake</h2>
+        <div class="grid">
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb" alt="Lake Photo 1">
+                <div class="preview-text">Serenity Over the Lake</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba" alt="Lake Photo 2">
+                <div class="preview-text">Morning Mist</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1470770841072-3d6d6c2b9361" alt="Lake Photo 3">
+                <div class="preview-text">Reflections</div>
+            </div>
+        </div>
+    </section>
 
-  <!-- —— Lake Category —— -->
-  <section class="category">
-    <h2>Lake</h2>
-    <div class="grid">
-      <div class="grid-item">
-        <img src="images/lake1.jpg" alt="Morning Lake">
-        <div class="preview-text">Morning Lake</div>
-      </div>
-      <div class="grid-item">
-        <img src="images/lake2.jpg" alt="Foggy Lake">
-        <div class="preview-text">Foggy Lake</div>
-      </div>
-      <div class="grid-item">
-        <img src="images/lake3.jpg" alt="Sunlit Shore">
-        <div class="preview-text">Sunlit Shore</div>
-      </div>
-    </div>
-  </section>
+    <!-- Sunset Category -->
+    <section class="category" id="sunset">
+        <h2>Sunset</h2>
+        <div class="grid">
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1503803548691-8716805ae07f" alt="Sunset Photo 1">
+                <div class="preview-text">Golden Horizon</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1495616811223-4d98c6e9c869" alt="Sunset Photo 2">
+                <div class="preview-text">Twilight Glow</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1472131039891-3f982b6f68a4" alt="Sunset Photo 3">
+                <div class="preview-text">Fading Light</div>
+            </div>
+        </div>
+    </section>
 
-  <!-- —— Sunset Category —— -->
-  <section class="category">
-    <h2>Sunset</h2>
-    <div class="grid">
-      <div class="grid-item">
-        <img src="images/sunset1.jpg" alt="Golden Sunset">
-        <div class="preview-text">Golden Sunset</div>
-      </div>
-      <div class="grid-item">
-        <img src="images/sunset2.jpg" alt="Silhouetted Trees">
-        <div class="preview-text">Silhouetted Trees</div>
-      </div>
-      <div class="grid-item">
-        <img src="images/sunset3.jpg" alt="Cloudy Horizon">
-        <div class="preview-text">Cloudy Horizon</div>
-      </div>
-    </div>
-  </section>
+    <!-- Landscape Category -->
+    <section class="category" id="landscape">
+        <h2>Landscape</h2>
+        <div class="grid">
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1501785886049-4cab625a1d0b" alt="Landscape Photo 1">
+                <div class="preview-text">Mountain Majesty</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1469474968028-566ce2e7e42e" alt="Landscape Photo 2">
+                <div class="preview-text">Rolling Hills</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e" alt="Landscape Photo 3">
+                <div class="preview-text">Forest Path</div>
+            </div>
+        </div>
+    </section>
 
-  <!-- —— Landscape Category —— -->
-  <section class="category">
-    <h2>Landscape</h2>
-    <div class="grid">
-      <div class="grid-item">
-        <img src="images/landscape1.jpg" alt="Mountain Range">
-        <div class="preview-text">Mountain Range</div>
-      </div>
-      <div class="grid-item">
-        <img src="images/landscape2.jpg" alt="Rolling Hills">
-        <div class="preview-text">Rolling Hills</div>
-      </div>
-      <div class="grid-item">
-        <img src="images/landscape3.jpg" alt="Forest Path">
-        <div class="preview-text">Forest Path</div>
-      </div>
-    </div>
-  </section>
+    <!-- Forest Category -->
+    <section class="category" id="forest">
+        <h2>Forest</h2>
+        <div class="grid">
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1448375240586-882707db888b" alt="Forest Photo 1">
+                <div class="preview-text">Mystic Woods</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1511497580567-2c5d697301d3" alt="Forest Photo 2">
+                <div class="preview-text">Emerald Canopy</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1473448912268-2022ce9509d8" alt="Forest Photo 3">
+                <div class="preview-text">Sunlit Trail</div>
+            </div>
+        </div>
+    </section>
 
+    <!-- Mountain Category -->
+    <section class="category" id="mountain">
+        <h2>Mountain</h2>
+        <div class="grid">
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99" alt="Mountain Photo 1">
+                <div class="preview-text">Peak Serenity</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b" alt="Mountain Photo 2">
+                <div class="preview-text">Alpine Glow</div>
+            </div>
+            <div class="photo-container">
+                <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba" alt="Mountain Photo 3">
+                <div class="preview-text">Rugged Heights</div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <p>© 2025 Photographer's Portfolio. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Fade-in animation for categories
+        const categories = document.querySelectorAll('.category');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        categories.forEach(category => observer.observe(category));
+
+        // Mouse-based parallax effect for images
+        const photoContainers = document.querySelectorAll('.photo-container');
+        photoContainers.forEach(container => {
+            const img = container.querySelector('img');
+            container.addEventListener('mousemove', (e) => {
+                const rect = container.getBoundingClientRect();
+                const x = e.clientX - rect.left - rect.width / 2; // Mouse X relative to image center
+                const y = e.clientY - rect.top - rect.height / 2; // Mouse Y relative to image center
+                const maxTilt = 10; // Maximum tilt angle in degrees
+                const tiltX = (y / rect.height) * maxTilt; // Tilt based on Y position
+                const tiltY = -(x / rect.width) * maxTilt; // Tilt based on X position
+                img.style.transform = `scale(1.05) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`; // Apply parallax tilt
+            });
+            container.addEventListener('mouseleave', () => {
+                img.style.transform = 'scale(1.05)'; // Reset to hover scale on mouse leave
+            });
+        });
+    </script>
 </body>
 </html>
