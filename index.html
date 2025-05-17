@@ -5,45 +5,52 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Photo Gallery</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
+/* --------------  BASICS  -------------- */
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
 
-  /* top bar */
-  header{
-    position:fixed;top:0;left:0;width:100%;
-    height:50px;line-height:50px;
-    background:rgba(0,0,0,.85);
-    text-align:center;z-index:1000;
-    transition:transform .4s ease;
-  }
-  header.hidden{transform:translateY(-100%)}
+/* --------------  TOP BAR  -------------- */
+header{
+  position:fixed;top:0;left:0;width:100%;height:50px;line-height:50px;
+  text-align:center;background:rgba(0,0,0,.85);z-index:1000;
+  transition:transform .45s cubic-bezier(.55,.06,.68,.19);
+}
+header.hidden{transform:translateY(-100%)}
 
-  /* gallery & categories */
-  .gallery-container{height:100vh;overflow:hidden;position:relative}
-  .category{
-    height:50vh;                /* exactly half-viewport */
-    display:flex;flex-direction:column;gap:8px;
-  }
-  .category h2{
-    padding:6px;text-align:center;background:rgba(0,0,0,.6)
-  }
-  .grid{
-    flex:1;display:grid;gap:8px;
-    grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-    padding:0 8px;
-  }
-  .grid img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+/* --------------  GALLERY  -------------- */
+.gallery-container{height:100vh;overflow:hidden;position:relative;perspective:700px}
+.category{
+  height:50vh;display:flex;flex-direction:column;gap:8px;
+  /* start state for roll-in */
+  opacity:0;transform-origin:center top;
+  transform:translateY(15vh) rotateX(-45deg);
+}
+.category.show{animation:rollIn .65s ease-out forwards}
+@keyframes rollIn{
+  to{opacity:1;transform:translateY(0) rotateX(0)}
+}
+.category h2{
+  padding:6px;text-align:center;background:rgba(0,0,0,.6)
+}
+.grid{
+  flex:1;display:grid;gap:8px;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  padding:0 8px
+}
+.grid img{width:100%;height:100%;object-fit:cover;border-radius:4px}
 
-  /* arrows */
-  .nav{
-    position:fixed;right:10px;top:50%;transform:translateY(-50%);
-    display:flex;flex-direction:column;gap:8px;z-index:1001
-  }
-  .nav button{
-    width:36px;height:36px;border:none;border-radius:50%;
-    background:#0ff;color:#000;font-size:1.1rem;cursor:pointer
-  }
-  .nav button:disabled{background:#333;color:#777;cursor:not-allowed}
+/* --------------  NAV BUTTONS  -------------- */
+.nav{
+  position:fixed;right:10px;top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:8px;z-index:1001
+}
+.nav button{
+  width:36px;height:36px;border:none;border-radius:50%;
+  background:#0ff;color:#000;font-size:1.1rem;cursor:pointer;
+  transition:background .25s
+}
+.nav button:hover:not(:disabled){background:#5ff}
+.nav button:disabled{background:#333;color:#777;cursor:not-allowed}
 </style>
 </head>
 <body>
@@ -59,62 +66,67 @@
 
 <script>
 (async () => {
-  /* -------- load JSON & build markup -------- */
-  const data   = await fetch('photos.json').then(r => r.json());
-  const gallery= document.getElementById('gallery');
-
+  /* ---------- LOAD JSON & BUILD DOM ---------- */
+  const data = await fetch('photos.json').then(r => r.json());
+  const gallery = document.getElementById('gallery');
   data.categories.forEach(cat=>{
     const sec=document.createElement('section');
     sec.className='category';
-    sec.innerHTML=`<h2>${cat.name}</h2>
+    sec.innerHTML=`
+      <h2>${cat.name}</h2>
       <div class="grid">
         ${cat.photos.map(p=>`<img src="${p.url}" alt="${p.alt}" loading="lazy">`).join('')}
       </div>`;
     gallery.appendChild(sec);
   });
 
-  /* -------- paging logic -------- */
-  const cats      = document.querySelectorAll('.category');
-  const step      = window.innerHeight/2;   // 50 vh
-  const maxIdx    = cats.length-2;          // last pair
-  let   idx       = 0;
+  /* ---------- PAGING SET-UP ---------- */
+  const cats   = document.querySelectorAll('.category');
+  const step   = window.innerHeight/2;        // 50 vh
+  const maxIdx = cats.length-2;               // last visible pair
+  let idx = 0;
+  const up   = document.getElementById('up');
+  const down = document.getElementById('down');
+  const topbar = document.getElementById('topbar');
 
-  const up        = document.getElementById('up');
-  const down      = document.getElementById('down');
-  const topbar    = document.getElementById('topbar');
-
-  const updateButtons = ()=>{
+  const updateBtns = ()=>{
     up.disabled   = idx===0;
     down.disabled = idx===maxIdx;
   };
   const goTo = i=>{
     gallery.scrollTo({top:i*step,behavior:'smooth'});
-    idx=i; updateButtons();
+    idx=i;updateBtns();
   };
+  up  .addEventListener('click',()=>idx>0&&goTo(idx-1));
+  down.addEventListener('click',()=>idx<maxIdx&&goTo(idx+1));
 
-  up  .addEventListener('click',()=>idx>0        && goTo(idx-1));
-  down.addEventListener('click',()=>idx<maxIdx   && goTo(idx+1));
-
-  /* wheel scroll (throttled) */
-  let lock=false;
+  /* ---------- WHEEL SCROLL (THROTTLED) ---------- */
+  let throttle=false;
   gallery.addEventListener('wheel',e=>{
     e.preventDefault();
-    if(lock) return;
-    lock=true; setTimeout(()=>lock=false,250);
+    if(throttle)return;
+    throttle=true;setTimeout(()=>throttle=false,300);
     (e.deltaY>0?down:up).click();
   },{passive:false});
 
-  /* show/hide top bar based on scroll position */
+  /* ---------- SHOW / HIDE TOP BAR ---------- */
   gallery.addEventListener('scroll',()=>{
-    const sc = gallery.scrollTop;
-    if(sc>5)  topbar.classList.add('hidden');
-    else      topbar.classList.remove('hidden');
-
-    const i  = Math.round(sc/step);
-    if(i!==idx){ idx=i; updateButtons(); }
+    const s = gallery.scrollTop;
+    s>5 ? topbar.classList.add('hidden')
+        : topbar.classList.remove('hidden');
+    const i=Math.round(s/step);
+    if(i!==idx){idx=i;updateBtns();}
   });
 
-  updateButtons();              // initial state
+  /* ---------- ROLL-IN WHEN SECTION ENTERS VIEW ---------- */
+  const obs = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(e.isIntersecting) e.target.classList.add('show');
+    });
+  },{root:gallery,threshold:0.15});
+  cats.forEach(c=>obs.observe(c));
+
+  updateBtns();
 })();
 </script>
 
