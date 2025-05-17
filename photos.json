@@ -21,20 +21,20 @@
       ]
     },
     {
-      "name": "Sunset",
+      "name": "Golden ",
       "photos": [
         {
-          "url": "https://images.unsplash.com/photo-1503803548691-8716805ae07f",
+          "url": "",
           "title": "Golden Horizon",
           "alt": "Sunset Photo 1"
         },
         {
-          "url": "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869",
+          "url": "",
           "title": "Twilight Glow",
           "alt": "Sunset Photo 2"
         },
         {
-          "url": "https://images.unsplash.com/photo-1472131039891-3f982b6f68a4",
+          "url": "",
           "title": "Fading Light",
           "alt": "Sunset Photo 3"
         }
