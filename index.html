@@ -3,38 +3,48 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Photos</title>
+<title>Photos – 2-up Scroll</title>
 
 <style>
+:root{--header-h:100px;--pad:20px}   /* tweak header or padding once */
+
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
-
-header{padding:60px 20px;text-align:center}
-h1{font-size:2.2rem}
-
-.gallery-container{height:100vh;overflow:hidden;position:relative}
-
-.category{
-  /* height will be set by JS so two fit on screen */
-  padding:20px;overflow:hidden;
-  display:flex;flex-direction:column;gap:12px
+body{
+  background:#000;color:#fff;font-family:sans-serif;
+  overflow:hidden;padding-top:var(--header-h)   /* give space for fixed header */
 }
-.category h2{text-align:center;margin-bottom:6px;font-size:1.4rem}
+header{
+  position:fixed;top:0;left:0;width:100%;
+  height:var(--header-h);display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  background:#111
+}
+h1{font-size:1.8rem;letter-spacing:.5px}
 
+/* --- gallery & sections --- */
+.gallery-container{
+  height:calc(100vh - var(--header-h));
+  overflow:hidden;position:relative
+}
+.category{
+  height:calc(50% - var(--pad)*2);   /* 2 fit exactly inc. padding */
+  padding:var(--pad);overflow:hidden;
+}
+.category h2{text-align:center;margin-bottom:10px;font-size:1.3rem}
 .grid{
-  flex:1;display:grid;gap:12px;
-  grid-template-columns:repeat(auto-fit,minmax(260px,1fr))
+  height:100%;display:grid;gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr))
 }
 .grid img{width:100%;height:100%;object-fit:cover;border-radius:6px}
 
+/* --- nav --- */
 .nav{
   position:fixed;right:10px;top:50%;transform:translateY(-50%);
-  display:flex;flex-direction:column;gap:14px;z-index:10
+  display:flex;flex-direction:column;gap:12px
 }
 .nav button{
   width:44px;height:44px;border:none;border-radius:50%;
-  font-size:1.2rem;cursor:pointer;
-  background:#00bcd4;color:#000
+  font-size:1.4rem;cursor:pointer;background:#00bcd4;color:#000
 }
 .nav button:disabled{background:#333;color:#777;cursor:not-allowed}
 </style>
@@ -46,65 +56,56 @@ h1{font-size:2.2rem}
 <div id="gallery" class="gallery-container"></div>
 
 <div class="nav">
-  <button id="up" disabled>↑</button>
+  <button id="up"   disabled>↑</button>
   <button id="down">↓</button>
 </div>
 
 <script>
-(async () => {
-  /* ------------ load JSON ------------ */
-  const data = await fetch('photos.json').then(r => r.json());
+(async()=>{
+  /* ------- build from photos.json ------- */
+  const data = await fetch('photos.json').then(r=>r.json());
+  const gallery=document.getElementById('gallery');
 
-  /* ------------ build markup ------------ */
-  const gallery = document.getElementById('gallery');
-  data.categories.forEach(cat => {
-    gallery.insertAdjacentHTML('beforeend', `
-      <section class="category">
-        <h2>${cat.name}</h2>
-        <div class="grid">
-          ${cat.photos.map(p =>
-            `<img src="${p.url}" alt="${p.alt}" loading="lazy">`).join('')}
-        </div>
-      </section>`);
+  data.categories.forEach(cat=>{
+    const s=document.createElement('section');
+    s.className='category';
+    s.innerHTML=`<h2>${cat.name}</h2>
+      <div class="grid">
+        ${cat.photos.map(p=>`<img src="${p.url}" alt="${p.alt}" loading="lazy">`).join('')}
+      </div>`;
+    gallery.appendChild(s);
   });
 
-  const headerH = document.querySelector('header').offsetHeight;
-  const avail   = window.innerHeight - headerH;        // space left
-  document.querySelectorAll('.category').forEach(c => {
-    c.style.height = (avail / 2) + 'px';               // two per screen
-  });
-
-  /* ------------ scrolling logic ------------ */
-  const cats      = document.querySelectorAll('.category');
-  const step      = cats[0].offsetHeight;
-  const max       = cats.length - 2;                   // last visible index
-  let   idx       = 0;
+  /* ---------- 2-up scrolling ---------- */
+  const cats   = document.querySelectorAll('.category');
+  const step   = cats[0].offsetHeight + parseFloat(getComputedStyle(cats[0]).paddingTop)*2;
+  const maxIdx = cats.length - 2;
+  let   idx    = 0;
 
   const up   = document.getElementById('up');
   const down = document.getElementById('down');
-  const updateBtns = () => {
-    up.disabled   = idx === 0;
-    down.disabled = idx === max;
-  };
-  const scrollTo = i => {
-    gallery.scrollTo({top: i * step, behavior:'smooth'});
-    idx = i; updateBtns();
-  };
 
-  up  .addEventListener('click', () => idx > 0   && scrollTo(idx - 1));
-  down.addEventListener('click', () => idx < max && scrollTo(idx + 1));
+  const update=()=>{up.disabled=idx===0;down.disabled=idx===maxIdx};
+  const scroll=(i)=>{gallery.scrollTo({top:i*step,behavior:'smooth'});idx=i;update()};
 
-  gallery.addEventListener('wheel', e => {
-    e.preventDefault();
-    (e.deltaY > 0 ? down : up).click();
-  }, {passive:false});
+  up  .addEventListener('click',()=>idx>0        && scroll(idx-1));
+  down.addEventListener('click',()=>idx<maxIdx   && scroll(idx+1));
 
-  gallery.addEventListener('scroll', () => {
-    const i = Math.round(gallery.scrollTop / step);
-    if (i !== idx){ idx = i; updateBtns(); }
+  /* wheel – one page per tick, throttled */
+  let lock=false;
+  gallery.addEventListener('wheel',e=>{
+    e.preventDefault();if(lock)return;
+    lock=true;setTimeout(()=>lock=false,200);
+    (e.deltaY>0?down:up).click();
+  },{passive:false});
+
+  /* keep arrows in sync if user drags scroll */
+  gallery.addEventListener('scroll',()=>{
+    const i=Math.round(gallery.scrollTop/step);
+    if(i!==idx){idx=i;update();}
   });
 
-  updateBtns();
+  update();               /* initial state */
 })();
 </script>
 </body>
