@@ -1,305 +1,92 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photographer Portfolio</title>
-    <!-- GLightbox CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/glightbox/dist/css/glightbox.min.css" />
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #000;
-            color: #fff;
-            overflow: hidden;
-        }
-        header {
-            text-align: center;
-            padding: 100px 20px;
-            background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e') center/cover no-repeat;
-            background-attachment: fixed;
-            color: white;
-            position: relative;
-        }
-        h1 {
-            margin: 0;
-            font-size: 3em;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        header p {
-            font-size: 1.2em;
-            margin-top: 10px;
-        }
-        .gallery-container {
-            height: 100vh;
-            overflow-y: hidden;
-            position: relative;
-            scroll-behavior: smooth;
-        }
-        .category {
-            padding: 40px 20px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: opacity 0.6s ease, transform 0.6s ease;
-            min-height: 50vh;
-        }
-        .category.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .category h2 {
-            text-align: center;
-            font-size: 2em;
-            margin-bottom: 20px;
-            color: #fff;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        .photo-container {
-            position: relative;
-            overflow: hidden;
-            aspect-ratio: 1 / 1;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-            transition: box-shadow 0.3s ease;
-            cursor: zoom-in;
-        }
-        .photo-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s ease;
-            transform-style: preserve-3d;
-        }
-        .preview-text {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4));
-            color: white;
-            padding: 10px;
-            text-align: center;
-            transform: translateY(100%);
-            transition: transform 0.3s ease;
-            z-index: 1;
-        }
-        .photo-container:hover {
-            box-shadow: 0 0 15px 5px rgba(0, 255, 255, 0.7);
-        }
-        .photo-container:hover img {
-            transform: scale(1.05);
-        }
-        .photo-container:hover .preview-text {
-            transform: translateY(0);
-        }
-        footer {
-            text-align: center;
-            padding: 20px;
-            background-color: #1a1a1a;
-            color: white;
-            position: relative;
-        }
-        .nav-arrows {
-            position: fixed;
-            right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            z-index: 100;
-        }
-        .arrow {
-            background: rgba(0, 255, 255, 0.7);
-            color: #fff;
-            border: none;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            font-size: 1.5em;
-            cursor: pointer;
-            transition: background 0.3s ease;
-        }
-        .arrow:hover {
-            background: rgba(0, 255, 255, 1);
-        }
-        .arrow:disabled {
-            background: rgba(0, 0, 0, 0.3);
-            cursor: not-allowed;
-        }
-        .glightbox-container .gslide-description {
-            background: rgba(0, 0, 0, 0.8);
-            padding: 10px;
-            border-radius: 4px;
-        }
-        .glightbox-container .gslide-title {
-            color: #fff;
-            font-size: 1.2em;
-        }
-    </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Simple JSON-Driven Gallery</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
+header{padding:60px 20px;text-align:center}
+h1{font-size:2.5rem}
+.gallery-container{height:100vh;overflow:hidden;position:relative}
+.category{
+  height:calc(50vh - 40px);padding:20px;overflow:hidden;
+  display:flex;flex-direction:column;gap:16px;justify-content:flex-start
+}
+.category h2{text-align:center;margin-bottom:10px}
+.grid{
+  flex:1;display:grid;gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr))
+}
+.grid img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.nav{
+  position:fixed;top:50%;right:10px;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:16px
+}
+.nav button{
+  width:42px;height:42px;border:none;border-radius:50%;font-size:1.2rem;
+  cursor:pointer;background:#00bcd4;color:#000
+}
+.nav button:disabled{background:#333;color:#777;cursor:not-allowed}
+</style>
 </head>
 <body>
-    <header>
-        <h1>Photographer's Portfolio</h1>
-        <p>Explore stunning captures of nature's beauty</p>
-    </header>
 
-    <div class="gallery-container" id="gallery-container">
-        <!-- Categories will be dynamically inserted here -->
-    </div>
+<header><h1>Photos</h1></header>
 
-    <div class="nav-arrows">
-        <button class="arrow" id="arrow-up" disabled aria-label="Scroll to previous categories">↑</button>
-        <button class="arrow" id="arrow-down" aria-label="Scroll to next categories">↓</button>
-    </div>
+<div class="gallery-container" id="gallery"></div>
 
-    <footer>
-        <p>© 2025 Photographer's Portfolio. All rights reserved.</p>
-    </footer>
+<div class="nav">
+  <button id="up" disabled>↑</button>
+  <button id="down">↓</button>
+</div>
 
-    <!-- GLightbox JS -->
-    <script src="https://cdn.jsdelivr.net/npm/glightbox/dist/js/glightbox.min.js"></script>
-    <script>
-        // Initialize GLightbox
-        const lightbox = GLightbox({
-            selector: '.glightbox',
-            touchNavigation: true,
-            loop: true,
-            autoplayVideos: false,
-            zoomable: true,
-            descPosition: 'bottom'
-        });
+<script>
+(async () => {
+  // load JSON
+  const data = await fetch('photos.json').then(r => r.json());
 
-        // Fetch and render categories from JSON
-        async function loadCategories() {
-            try {
-                const response = await fetch('photos.json');
-                const data = await response.json();
-                const galleryContainer = document.getElementById('gallery-container');
+  const gallery = document.getElementById('gallery');
+  // build markup
+  data.categories.forEach(c => {
+    const s = document.createElement('section');
+    s.className = 'category';
+    s.innerHTML = `<h2>${c.name}</h2>
+      <div class="grid">
+        ${c.photos.map(p =>
+          `<img src="${p.url}" alt="${p.alt}" loading="lazy">`).join('')}
+      </div>`;
+    gallery.appendChild(s);
+  });
 
-                data.categories.forEach((category, index) => {
-                    const section = document.createElement('section');
-                    section.className = 'category';
-                    section.id = category.name.toLowerCase();
-                    section.innerHTML = `
-                        <h2>${category.name}</h2>
-                        <div class="grid">
-                            ${category.photos.map(photo => `
-                                <div class="photo-container">
-                                    <a href="${photo.url}" class="glightbox" data-title="${photo.title}">
-                                        <img src="${photo.url}" alt="${photo.alt}" loading="lazy">
-                                        <div class="preview-text">${photo.title}</div>
-                                    </a>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                    galleryContainer.appendChild(section);
-                });
+  // simple vertical paging (two categories visible)
+  const cats = document.querySelectorAll('.category');
+  const step = cats[0].offsetHeight;
+  const max  = cats.length - 2;
+  let idx = 0;
 
-                // Initialize animations and navigation after categories are loaded
-                initializeAnimations();
-                initializeNavigation();
-                initializeParallax();
-            } catch (error) {
-                console.error('Error loading photos:', error);
-                galleryContainer.innerHTML = '<p>Error loading photos. Please try again later.</p>';
-            }
-        }
+  const up   = document.getElementById('up');
+  const down = document.getElementById('down');
+  const update = () => {
+    up.disabled   = idx === 0;
+    down.disabled = idx === max;
+  };
+  const scrollTo = i => {
+    gallery.scrollTo({top: i * step, behavior: 'smooth'});
+    idx = i; update();
+  };
+  up.addEventListener('click',   () => idx > 0   && scrollTo(idx - 1));
+  down.addEventListener('click', () => idx < max && scrollTo(idx + 1));
 
-        // Fade-in animation for categories
-        function initializeAnimations() {
-            const categories = document.querySelectorAll('.category');
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('visible');
-                    }
-                });
-            }, { threshold: 0.1, root: document.querySelector('.gallery-container') });
-            categories.forEach(category => observer.observe(category));
-        }
+  gallery.addEventListener('wheel', e => {
+    e.preventDefault();
+    (e.deltaY > 0 ? down : up).click();
+  }, {passive:false});
 
-        // Mouse-based parallax effect for images
-        function initializeParallax() {
-            const images = document.querySelectorAll('.photo-container img');
-            images.forEach(img => {
-                img.parentElement.addEventListener('mousemove', (e) => {
-                    const rect = img.getBoundingClientRect();
-                    const centerX = rect.left + rect.width / 2;
-                    const centerY = rect.top + rect.height / 2;
-                    const mouseX = e.clientX - centerX;
-                    const mouseY = e.clientY - centerY;
-                    const maxTilt = 5;
-                    const rotateY = (mouseX / rect.width) * maxTilt;
-                    const rotateX = -(mouseY / rect.height) * maxTilt;
-                    img.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-                });
-                img.parentElement.addEventListener('mouseleave', () => {
-                    img.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-                });
-            });
-        }
-
-        // Navigation with arrows
-        function initializeNavigation() {
-            const galleryContainer = document.querySelector('.gallery-container');
-            const arrowUp = document.querySelector('#arrow-up');
-            const arrowDown = document.querySelector('#arrow-down');
-            let currentIndex = 0;
-            const categories = document.querySelectorAll('.category');
-            const categoryHeight = window.innerHeight / 2;
-            const maxIndex = Math.ceil(categories.length / 2) - 1;
-
-            function updateArrows() {
-                arrowUp.disabled = currentIndex === 0;
-                arrowDown.disabled = currentIndex === maxIndex;
-            }
-
-            function scrollToIndex(index) {
-                galleryContainer.scrollTo({
-                    top: index * 2 * categoryHeight,
-                    behavior: 'smooth'
-                });
-                currentIndex = index;
-                updateArrows();
-            }
-
-            arrowUp.addEventListener('click', () => {
-                if (currentIndex > 0) {
-                    scrollToIndex(currentIndex - 1);
-                }
-            });
-
-            arrowDown.addEventListener('click', () => {
-                if (currentIndex < maxIndex) {
-                    scrollToIndex(currentIndex + 1);
-                }
-            });
-
-            galleryContainer.addEventListener('scroll', () => {
-                const scrollTop = galleryContainer.scrollTop;
-                const newIndex = Math.round(scrollTop / (2 * categoryHeight));
-                if (newIndex !== currentIndex) {
-                    currentIndex = newIndex;
-                    updateArrows();
-                }
-            });
-
-            updateArrows();
-        }
-
-        // Load categories on page load
-        window.addEventListener('load', loadCategories);
-    </script>
+  update();
+})();
+</script>
 </body>
 </html>
