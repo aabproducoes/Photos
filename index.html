@@ -1,50 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Photos – 2-up Scroll</title>
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>JSON Gallery</title>
 <style>
-:root{--header-h:100px;--pad:20px}   /* tweak header or padding once */
-
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  background:#000;color:#fff;font-family:sans-serif;
-  overflow:hidden;padding-top:var(--header-h)   /* give space for fixed header */
-}
-header{
-  position:fixed;top:0;left:0;width:100%;
-  height:var(--header-h);display:flex;flex-direction:column;
-  justify-content:center;align-items:center;
-  background:#111
-}
-h1{font-size:1.8rem;letter-spacing:.5px}
+body{font-family:sans-serif;background:#000;color:#fff;overflow:hidden}
+header{padding:50px 20px;text-align:center}
+h1{font-size:2.2rem}
 
-/* --- gallery & sections --- */
-.gallery-container{
-  height:calc(100vh - var(--header-h));
-  overflow:hidden;position:relative
-}
+/* ---------- sections ---------- */
+.gallery{height:100vh;overflow:hidden;position:relative}
+
 .category{
-  height:calc(50% - var(--pad)*2);   /* 2 fit exactly inc. padding */
-  padding:var(--pad);overflow:hidden;
+  height:50vh;                 /* exactly half the viewport */
+  padding:20px;
+  display:flex;flex-direction:column;gap:12px;
+  overflow:hidden;             /* crop anything taller */
 }
-.category h2{text-align:center;margin-bottom:10px;font-size:1.3rem}
-.grid{
-  height:100%;display:grid;gap:16px;
-  grid-template-columns:repeat(auto-fit,minmax(240px,1fr))
-}
-.grid img{width:100%;height:100%;object-fit:cover;border-radius:6px}
+.category h2{text-align:center;margin-bottom:6px;font-size:1.6rem}
 
-/* --- nav --- */
-.nav{
-  position:fixed;right:10px;top:50%;transform:translateY(-50%);
-  display:flex;flex-direction:column;gap:12px
-}
+/* grid of square thumbs */
+.grid{flex:1;display:grid;gap:12px;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+.thumb{aspect-ratio:1/1;border-radius:6px;overflow:hidden}
+.thumb img{width:100%;height:100%;object-fit:cover}
+
+/* arrows */
+.nav{position:fixed;right:12px;top:50%;transform:translateY(-50%);
+     display:flex;flex-direction:column;gap:15px}
 .nav button{
-  width:44px;height:44px;border:none;border-radius:50%;
-  font-size:1.4rem;cursor:pointer;background:#00bcd4;color:#000
+  width:42px;height:42px;border:none;border-radius:50%;
+  font-size:1.3rem;cursor:pointer;
+  background:#00bcd4;color:#000;
 }
 .nav button:disabled{background:#333;color:#777;cursor:not-allowed}
 </style>
@@ -53,59 +42,78 @@ h1{font-size:1.8rem;letter-spacing:.5px}
 
 <header><h1>Photos</h1></header>
 
-<div id="gallery" class="gallery-container"></div>
+<div class="gallery" id="gallery"></div>
 
 <div class="nav">
   <button id="up"   disabled>↑</button>
-  <button id="down">↓</button>
+  <button id="down" disabled>↓</button>
 </div>
 
 <script>
-(async()=>{
-  /* ------- build from photos.json ------- */
-  const data = await fetch('photos.json').then(r=>r.json());
-  const gallery=document.getElementById('gallery');
+(async () => {
+  /* ---------- load JSON & build DOM ---------- */
+  const data    = await fetch('photos.json').then(r => r.json());
+  const gallery = document.getElementById('gallery');
 
-  data.categories.forEach(cat=>{
-    const s=document.createElement('section');
-    s.className='category';
-    s.innerHTML=`<h2>${cat.name}</h2>
-      <div class="grid">
-        ${cat.photos.map(p=>`<img src="${p.url}" alt="${p.alt}" loading="lazy">`).join('')}
-      </div>`;
-    gallery.appendChild(s);
+  data.categories.forEach(c => {
+    const sec = document.createElement('section');
+    sec.className = 'category';
+    sec.innerHTML = `<h2>${c.name}</h2>
+       <div class="grid">
+         ${c.photos.map(p =>
+            `<div class="thumb">
+               <img src="${p.url}" alt="${p.alt}" loading="lazy">
+             </div>`).join('')}
+       </div>`;
+    gallery.appendChild(sec);
   });
 
-  /* ---------- 2-up scrolling ---------- */
-  const cats   = document.querySelectorAll('.category');
-  const step   = cats[0].offsetHeight + parseFloat(getComputedStyle(cats[0]).paddingTop)*2;
-  const maxIdx = cats.length - 2;
-  let   idx    = 0;
+  /* ---------- scrolling logic ---------- */
+  const cats      = [...document.querySelectorAll('.category')];
+  const upBtn     = document.getElementById('up');
+  const downBtn   = document.getElementById('down');
+  let   index     = 0;                       // current top-most category
 
-  const up   = document.getElementById('up');
-  const down = document.getElementById('down');
+  const step      = () => cats[0].offsetHeight;                // 50 vh exact
+  const visible   = () => Math.floor(gallery.clientHeight / step());
+  const maxIndex  = () => Math.max(0, cats.length - visible()); // last pair
 
-  const update=()=>{up.disabled=idx===0;down.disabled=idx===maxIdx};
-  const scroll=(i)=>{gallery.scrollTo({top:i*step,behavior:'smooth'});idx=i;update()};
+  function updateButtons(){
+    upBtn.disabled   = index === 0;
+    downBtn.disabled = index === maxIndex();
+  }
+  function scrollTo(i){
+    index = Math.min(Math.max(i,0), maxIndex());
+    gallery.scrollTo({top: index * step(), behavior:'smooth'});
+    updateButtons();
+  }
 
-  up  .addEventListener('click',()=>idx>0        && scroll(idx-1));
-  down.addEventListener('click',()=>idx<maxIdx   && scroll(idx+1));
+  upBtn  .addEventListener('click',()=>scrollTo(index-1));
+  downBtn.addEventListener('click',()=>scrollTo(index+1));
 
-  /* wheel – one page per tick, throttled */
-  let lock=false;
+  /* wheel: throttle to one step every 200 ms */
+  let wheelLock = false;
   gallery.addEventListener('wheel',e=>{
-    e.preventDefault();if(lock)return;
-    lock=true;setTimeout(()=>lock=false,200);
-    (e.deltaY>0?down:up).click();
+    e.preventDefault();
+    if(wheelLock) return;
+    wheelLock = true; setTimeout(()=>wheelLock=false,200);
+    e.deltaY > 0 ? downBtn.click() : upBtn.click();
   },{passive:false});
 
-  /* keep arrows in sync if user drags scroll */
+  /* sync if user drags scrollbar (mobile) */
   gallery.addEventListener('scroll',()=>{
-    const i=Math.round(gallery.scrollTop/step);
-    if(i!==idx){idx=i;update();}
+    const newIdx = Math.round(gallery.scrollTop / step());
+    if(newIdx !== index){index = newIdx; updateButtons();}
   });
 
-  update();               /* initial state */
+  /* recompute on resize (orientation change) */
+  window.addEventListener('resize',()=>{
+    gallery.scrollTop = index * step();      // keep same pair visible
+    updateButtons();
+  });
+
+  /* enable ↓ after layout ready */
+  updateButtons();
 })();
 </script>
 </body>
