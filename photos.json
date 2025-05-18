@@ -135,9 +135,29 @@
           "alt": "Nova-Alvorada-GroceryStore Photo 2"
         },
         {
-          "url": ""https://ik.imagekit.io/aabproducoes/BestShots/DSC00617%20(1).JPG?updatedAt=1747526821711,
+          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00617%20(1).JPG?updatedAt=1747526821711",
           "title": "Nova Alvorada Shop Blue 3",
           "alt": "Nova-Alvorada-GroceryStore Photo 3"
+        }
+      ]
+    },
+    {
+      "name": "TheShadows",
+      "photos": [
+        {
+          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00576.JPG?updatedAt=1747526927455",
+          "title": "Pine Tree Shadow",
+          "alt": "TheShadows Photo 1"
+        },
+        {
+          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00580.JPG?updatedAt=1747526927614",
+          "title": "Shadow Lines",
+          "alt": "TheShadows Photo 2"
+        },
+        {
+          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00573.JPG?updatedAt=1747526926184",
+          "title": "Mountain Tree Shadows",
+          "alt": "TheShadows Photo 3"
         }
       ]
     }
