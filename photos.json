@@ -120,5 +120,26 @@
         }
       ]
     }
+  ],
+    {
+      "name": "Nova-Alvorada-GroceryStore",
+      "photos": [
+        {
+          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00615.JPG?updatedAt=1747526819878",
+          "title": "Nova Alvorada Shop Blue 1",
+          "alt": "Nova-Alvorada-GroceryStore Photo 1"
+        },
+        {
+          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00616.JPG?updatedAt=1747526819879",
+          "title": "Nova Alvorada Shop Blue 2",
+          "alt": "Nova-Alvorada-GroceryStore Photo 2"
+        },
+        {
+          "url": ""https://ik.imagekit.io/aabproducoes/BestShots/DSC00617%20(1).JPG?updatedAt=1747526821711,
+          "title": "Nova Alvorada Shop Blue 3",
+          "alt": "Nova-Alvorada-GroceryStore Photo 3"
+        }
+      ]
+    }
   ]
 }
