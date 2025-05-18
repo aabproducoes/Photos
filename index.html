@@ -5,56 +5,70 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Photo Gallery</title>
 <style>
-/* --------------  BASIC RESET  -------------- */
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
 
-/* --------------  TOP BAR  -------------- */
+/* top bar */
 header{
   position:fixed;top:0;left:0;width:100%;height:50px;line-height:50px;
   text-align:center;background:rgba(0,0,0,.85);z-index:1000;
-  transition:transform .45s cubic-bezier(.55,.06,.68,.19);
+  transition:transform .45s cubic-bezier(.55,.06,.68,.19)
 }
 header.hidden{transform:translateY(-100%)}
 
-/* --------------  GALLERY / CATEGORY -------------- */
-.gallery-container{height:100vh;overflow:hidden;perspective:700px}
-.category{
-  height:50vh;display:flex;flex-direction:column;gap:8px;
-  opacity:0;transform:translateY(15vh) rotateX(-45deg);transform-origin:center top;
+/* scroller */
+.gallery-container{
+  height:100vh;
+  overflow:hidden;             /* still hides off-screen sections   */
+  position:relative;
 }
-.category.show{animation:rollIn .65s ease-out forwards}
-@keyframes rollIn{to{opacity:1;transform:translateY(0) rotateX(0)}}
+
+/* category block  */
+.category{
+  height:50vh;
+  display:flex;flex-direction:column;gap:8px;
+  /* allow 3-D parts to poke outside while animating */
+  overflow:visible;
+  perspective:800px;           /* moved here */
+  transform-style:preserve-3d; /* keep depth */
+  opacity:0;
+  transform:translateY(15vh) rotateX(-45deg);
+  transform-origin:center top;
+}
+.category.show{
+  animation:rollIn .65s ease-out forwards;
+}
+@keyframes rollIn{
+  to{opacity:1;transform:translateY(0) rotateX(0)}
+}
 .category h2{padding:6px;text-align:center;background:rgba(0,0,0,.6)}
 
-/* --------------  PHOTO CARD -------------- */
+/* photos */
 .grid{
   flex:1;display:grid;gap:8px;padding:0 8px;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr))
 }
 .photo{
-  position:relative;isolation:isolate;           /* ensures overlay sits above */
-  width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:4px;
+  position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:4px
 }
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
 .photo:hover img{filter:brightness(.75)}
 .preview{
   position:absolute;left:0;right:0;bottom:0;padding:6px 4px;
-  color:#fff;font-size:.9rem;text-align:center;
   background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
   transform:translateY(100%);transition:.3s;z-index:1;
-  white-space:normal;            /* wrap long titles cleanly */
+  text-align:center;font-size:.9rem;white-space:normal
 }
 .photo:hover .preview{transform:translateY(0)}
 
-/* --------------  NAV BUTTONS -------------- */
+/* arrows */
 .nav{
   position:fixed;right:10px;top:50%;transform:translateY(-50%);
   display:flex;flex-direction:column;gap:8px;z-index:1001
 }
 .nav button{
   width:36px;height:36px;border:none;border-radius:50%;
-  background:#0ff;color:#000;font-size:1.1rem;cursor:pointer;
+  background:#0ff;color:#000;font-size:1.1rem;cursor:pointer
 }
 .nav button:hover:not(:disabled){background:#5ff}
 .nav button:disabled{background:#333;color:#777;cursor:not-allowed}
@@ -73,15 +87,14 @@ header.hidden{transform:translateY(-100%)}
 
 <script>
 (async () => {
-  /* ----------  LOAD JSON  ---------- */
-  const data = await fetch('photos.json').then(r => r.json());
-  const gallery = document.getElementById('gallery');
+  /* -------- load JSON -------- */
+  const data   = await fetch('photos.json').then(r => r.json());
+  const gallery= document.getElementById('gallery');
 
-  /* ----------  BUILD HTML  ---------- */
   data.categories.forEach(cat=>{
-    const sec=document.createElement('section');
-    sec.className='category';
-    sec.innerHTML=`
+    const s=document.createElement('section');
+    s.className='category';
+    s.innerHTML=`
       <h2>${cat.name}</h2>
       <div class="grid">
         ${cat.photos.map(p=>`
@@ -90,53 +103,42 @@ header.hidden{transform:translateY(-100%)}
             <figcaption class="preview">${p.title}</figcaption>
           </figure>`).join('')}
       </div>`;
-    gallery.appendChild(sec);
+    gallery.appendChild(s);
   });
 
-  /* ----------  PAGING LOGIC  ---------- */
+  /* -------- paging -------- */
   const cats   = document.querySelectorAll('.category');
-  const step   = window.innerHeight/2;        // 50 vh per category
-  const maxIdx = cats.length - 2;             // show two at a time
-  let idx = 0;
+  const step   = window.innerHeight/2;
+  const maxIdx = cats.length-2;
+  let idx=0;
+  const up=document.getElementById('up'),down=document.getElementById('down');
+  const bar=document.getElementById('topbar');
+  const update=()=>{up.disabled=idx===0;down.disabled=idx===maxIdx};
+  const go=i=>{gallery.scrollTo({top:i*step,behavior:'smooth'});idx=i;update()};
+  up  .addEventListener('click',()=>idx>0&&go(idx-1));
+  down.addEventListener('click',()=>idx<maxIdx&&go(idx+1));
 
-  const up   = document.getElementById('up');
-  const down = document.getElementById('down');
-  const bar  = document.getElementById('topbar');
-
-  const updateBtns = () => {
-    up.disabled   = idx === 0;
-    down.disabled = idx === maxIdx;
-  };
-  const go = i => {
-    gallery.scrollTo({top:i*step,behavior:'smooth'});
-    idx=i; updateBtns();
-  };
-  up  .addEventListener('click', ()=>idx>0      && go(idx-1));
-  down.addEventListener('click', ()=>idx<maxIdx && go(idx+1));
-
-  /* wheel scroll (throttled) */
+  /* wheel */
   let lock=false;
-  gallery.addEventListener('wheel', e=>{
-    e.preventDefault();
-    if(lock) return;
-    lock=true; setTimeout(()=>lock=false,280);
+  gallery.addEventListener('wheel',e=>{
+    e.preventDefault();if(lock)return;
+    lock=true;setTimeout(()=>lock=false,280);
     (e.deltaY>0?down:up).click();
   },{passive:false});
 
-  /* hide bar & roll-in reveal */
+  /* reveal + hide top bar */
   const io=new IntersectionObserver(en=>{
     en.forEach(e=>e.isIntersecting&&e.target.classList.add('show'));
-  },{root:gallery,threshold:.15});
+  },{root:gallery,threshold:.1});
   cats.forEach(c=>io.observe(c));
 
-  gallery.addEventListener('scroll', ()=>{
-    const s=gallery.scrollTop;
-    s>5 ? bar.classList.add('hidden') : bar.classList.remove('hidden');
-    const i=Math.round(s/step);
-    if(i!==idx){idx=i;updateBtns();}
+  gallery.addEventListener('scroll',()=>{
+    bar.classList.toggle('hidden',gallery.scrollTop>5);
+    const i=Math.round(gallery.scrollTop/step);
+    if(i!==idx){idx=i;update()}
   });
 
-  updateBtns();          // initial state
+  update();
 })();
 </script>
 </body>
