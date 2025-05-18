@@ -5,11 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Photo Gallery</title>
 <style>
-/* -------- BASIC RESET -------- */
+/* ----------------  RESET  ---------------- */
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
 
-/* -------- TOP BAR -------- */
+/* ----------------  TOP BAR  ---------------- */
 header{
   position:fixed;top:0;left:0;width:100%;height:50px;line-height:50px;
   text-align:center;background:rgba(0,0,0,.85);z-index:1000;
@@ -17,39 +17,44 @@ header{
 }
 header.hidden{transform:translateY(-100%)}
 
-/* -------- GALLERY / CATEGORY -------- */
+/* ----------------  GALLERY  ---------------- */
 .gallery-container{height:100vh;overflow:hidden;position:relative}
 .category{
   height:50vh;display:flex;flex-direction:column;gap:8px;
-  opacity:0;transform:translateY(15vh) rotateX(-45deg);transform-origin:center top;
-  overflow:visible;perspective:800px;transform-style:preserve-3d
+  opacity:0;transform:translateY(15vh) rotateX(-45deg);
+  transform-origin:center top;overflow:visible;perspective:800px;
+  transform-style:preserve-3d
 }
 .category.show{animation:rollIn .65s ease-out forwards}
 @keyframes rollIn{to{opacity:1;transform:translateY(0) rotateX(0)}}
 .category h2{padding:6px;text-align:center;background:rgba(0,0,0,.6)}
 
-/* -------- PHOTO CARD -------- */
+/* ----------------  PHOTO CARD  ---------------- */
 .grid{
   flex:1;display:grid;gap:8px;padding:0 8px;
   grid-template-columns:repeat(auto-fit,minmax(200px,1fr))
 }
 .photo{
-  position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;border-radius:6px;
-  isolation:isolate;              /* keep neon above image */
-  transition:transform .25s                                           /* upscale hover */
+  position:relative;               /* caption positioning ref */
+  width:100%;aspect-ratio:1/1;
+  overflow:hidden;                 /* <<< fixes caption spill */
+  border-radius:6px;isolation:isolate;
+  transition:transform .25s
 }
 .photo img{width:100%;height:100%;object-fit:cover;display:block}
-.photo:hover img{filter:brightness(.75)}
-.photo:hover{transform:scale(1.03)}                                  /* small zoom */
+.photo:hover img{filter:brightness(.8)}
+.photo:hover{transform:scale(1.03)}
+
 .preview{
   position:absolute;left:0;right:0;bottom:0;padding:6px 4px;
   background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
-  transform:translateY(100%);transition:.3s;z-index:1;text-align:center;
-  font-size:.9rem;white-space:normal;color:#fff
+  transform:translateY(100%);transition:.3s;
+  text-align:center;font-size:.9rem;white-space:normal;color:#fff;
+  z-index:2;pointer-events:none;        /* <<< always above image */
 }
 .photo:hover .preview{transform:translateY(0)}
 
-/* -------- NAV BUTTONS -------- */
+/* ----------------  NAV BUTTONS  ---------------- */
 .nav{
   position:fixed;right:10px;top:50%;transform:translateY(-50%);
   display:flex;flex-direction:column;gap:8px;z-index:1001
@@ -75,15 +80,15 @@ header.hidden{transform:translateY(-100%)}
 
 <script>
 (async () => {
-  /* -------- LOAD JSON -------- */
+  /* ----------  LOAD JSON  ---------- */
   const data   = await fetch('photos.json').then(r => r.json());
   const gallery= document.getElementById('gallery');
 
-  /* -------- BUILD HTML -------- */
+  /* ----------  BUILD GALLERY  ---------- */
   data.categories.forEach(cat=>{
-    const s=document.createElement('section');
-    s.className='category';
-    s.innerHTML=`
+    const sec=document.createElement('section');
+    sec.className='category';
+    sec.innerHTML=`
       <h2>${cat.name}</h2>
       <div class="grid">
         ${cat.photos.map(p=>`
@@ -92,52 +97,60 @@ header.hidden{transform:translateY(-100%)}
             <figcaption class="preview">${p.title}</figcaption>
           </figure>`).join('')}
       </div>`;
-    gallery.appendChild(s);
+    gallery.appendChild(sec);
   });
 
-  /* -------- RANDOM NEON BORDER -------- */
+  /* ----------  RANDOM NEON BORDERS  ---------- */
   document.querySelectorAll('.photo').forEach(card=>{
     const hue = Math.floor(Math.random()*360);
-    const neon = `hsl(${hue} 100% 50%)`;
-    /* inset + outer glow for extra flair */
-    card.style.boxShadow =
-      `inset 0 0 12px 2px ${neon},
-       0 0 2px 1px ${neon}`;
+    const neon=`hsl(${hue} 100% 50%)`;
+    card.style.boxShadow=
+      `inset 0 0 12px 2px ${neon}, 0 0 12px 4px ${neon}`;
   });
 
-  /* -------- PAGING -------- */
+  /* ----------  PAGING  ---------- */
   const cats   = document.querySelectorAll('.category');
   const step   = window.innerHeight/2;
   const maxIdx = cats.length-2;
-  let idx=0;
-  const up=document.getElementById('up'),down=document.getElementById('down');
-  const bar=document.getElementById('topbar');
-  const update=()=>{up.disabled=idx===0;down.disabled=idx===maxIdx};
-  const go=i=>{gallery.scrollTo({top:i*step,behavior:'smooth'});idx=i;update()};
-  up  .addEventListener('click',()=>idx>0&&go(idx-1));
-  down.addEventListener('click',()=>idx<maxIdx&&go(idx+1));
+  let   idx=0;
 
-  /* wheel throttled */
+  const up  = document.getElementById('up');
+  const down= document.getElementById('down');
+  const bar = document.getElementById('topbar');
+
+  const updateBtns=()=>{
+    up.disabled  = idx===0;
+    down.disabled= idx===maxIdx;
+  };
+  const go=i=>{
+    gallery.scrollTo({top:i*step,behavior:'smooth'});
+    idx=i;updateBtns();
+  };
+  up  .addEventListener('click',()=>idx>0      && go(idx-1));
+  down.addEventListener('click',()=>idx<maxIdx && go(idx+1));
+
+  /* wheel throttle */
   let lock=false;
   gallery.addEventListener('wheel',e=>{
-    e.preventDefault();if(lock)return;
+    e.preventDefault();
+    if(lock) return;
     lock=true;setTimeout(()=>lock=false,280);
     (e.deltaY>0?down:up).click();
   },{passive:false});
 
-  /* reveal + hide top bar, run roll-in */
-  const io=new IntersectionObserver(en=>{
-    en.forEach(e=>e.isIntersecting&&e.target.classList.add('show'));
-  },{root:gallery,threshold:.1});
+  /* reveal animation + hide bar */
+  const io=new IntersectionObserver(entries=>{
+    entries.forEach(e=>e.isIntersecting&&e.target.classList.add('show'));
+  },{root:gallery,threshold:.12});
   cats.forEach(c=>io.observe(c));
 
   gallery.addEventListener('scroll',()=>{
     bar.classList.toggle('hidden',gallery.scrollTop>5);
     const i=Math.round(gallery.scrollTop/step);
-    if(i!==idx){idx=i;update()}
+    if(i!==idx){idx=i;updateBtns();}
   });
 
-  update();
+  updateBtns();
 })();
 </script>
 </body>
