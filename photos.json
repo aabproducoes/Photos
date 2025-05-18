@@ -6,7 +6,7 @@
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/BestSHots%20%20%20(9).JPG?updatedAt=1746924373027",
           "title": "Birds Over the Lake",
-          "alt": "Lake Photo 1" 
+          "alt": "Lake Photo 1"
         },
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/BestSHots%20%20%20(10).JPG?updatedAt=1746924315202",
@@ -20,6 +20,7 @@
         }
       ]
     },
+
     {
       "name": "Golden Hour",
       "photos": [
@@ -40,6 +41,7 @@
         }
       ]
     },
+
     {
       "name": "Landscape",
       "photos": [
@@ -60,6 +62,7 @@
         }
       ]
     },
+
     {
       "name": "Horses",
       "photos": [
@@ -80,6 +83,7 @@
         }
       ]
     },
+
     {
       "name": "Woods",
       "photos": [
@@ -100,17 +104,18 @@
         }
       ]
     },
+
     {
       "name": "Coca-Truck",
       "photos": [
         {
-          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00673.JPG?updatedAt=17475266988315",
+          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00673.JPG?updatedAt=1747526698831",
           "title": "Coca-Cola Truck",
           "alt": "Coca-Truck Photo 1"
         },
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00677.JPG?updatedAt=1747526699759",
-          "title": "Assymetric Coca-Cola",
+          "title": "Asymmetric Coca-Cola",
           "alt": "Coca-Truck Photo 2"
         },
         {
@@ -119,87 +124,69 @@
           "alt": "Coca-Truck Photo 3"
         }
       ]
-    }
-  ],
+    },
+
     {
-      "name": "Nova-Alvorada-GroceryStore",
+      "name": "Nova-Alvorada Grocery Store",
       "photos": [
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00615.JPG?updatedAt=1747526819878",
-          "title": "Nova Alvorada Shop Blue 1",
-          "alt": "Nova-Alvorada-GroceryStore Photo 1"
+          "title": "Shop Blue 1",
+          "alt": "GroceryStore Photo 1"
         },
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00616.JPG?updatedAt=1747526819879",
-          "title": "Nova Alvorada Shop Blue 2",
-          "alt": "Nova-Alvorada-GroceryStore Photo 2"
+          "title": "Shop Blue 2",
+          "alt": "GroceryStore Photo 2"
         },
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00617%20(1).JPG?updatedAt=1747526821711",
-          "title": "Nova Alvorada Shop Blue 3",
-          "alt": "Nova-Alvorada-GroceryStore Photo 3"
+          "title": "Shop Blue 3",
+          "alt": "GroceryStore Photo 3"
         }
       ]
     },
+
     {
-      "name": "TheShadows",
+      "name": "The Shadows",
       "photos": [
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00576.JPG?updatedAt=1747526927455",
           "title": "Pine Tree Shadow",
-          "alt": "TheShadows Photo 1"
+          "alt": "Shadows Photo 1"
         },
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00580.JPG?updatedAt=1747526927614",
           "title": "Shadow Lines",
-          "alt": "TheShadows Photo 2"
+          "alt": "Shadows Photo 2"
         },
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00573.JPG?updatedAt=1747526926184",
           "title": "Mountain Tree Shadows",
-          "alt": "TheShadows Photo 3"
+          "alt": "Shadows Photo 3"
         }
       ]
     },
+
     {
-      "name": "TheShadows",
-      "photos": [
-        {
-          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00576.JPG?updatedAt=1747526927455",
-          "title": "Pine Tree Shadow",
-          "alt": "TheShadows Photo 1"
-        },
-        {
-          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00580.JPG?updatedAt=1747526927614",
-          "title": "Shadow Lines",
-          "alt": "TheShadows Photo 2"
-        },
-        {
-          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00573.JPG?updatedAt=1747526926184",
-          "title": "Mountain Tree Shadows",
-          "alt": "TheShadows Photo 3"
-        }
-      ]
-    },
-    {
-      "name": "TheBootle",
+      "name": "The Bottle",
       "photos": [
         {
           "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00636.JPG?updatedAt=1747526530471",
-          "title": "Bootle Focus",
-          "alt": "TheBootle Photo 1"
+          "title": "Bottle Focus",
+          "alt": "Bottle Photo 1"
         },
         {
-          "url": ""https://ik.imagekit.io/aabproducoes/BestShots/DSC00637.JPG?updatedAt=1747526529502,
-          "title": "Bootle WorldView",
-          "alt": "TheBootle Photo 2"
-        }, 
+          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00637.JPG?updatedAt=1747526529502",
+          "title": "Bottle World View",
+          "alt": "Bottle Photo 2"
+        },
         {
-          "url": ""https://ik.imagekit.io/aabproducoes/BestShots/DSC00634.JPG?updatedAt=1747526596876,
-          "title": "Bootle Macro",
-          "alt": "TheBootle Photo 3"
+          "url": "https://ik.imagekit.io/aabproducoes/BestShots/DSC00634.JPG?updatedAt=1747526596876",
+          "title": "Bottle Macro",
+          "alt": "Bottle Photo 3"
         }
       ]
     }
-  
+  ]
 }
