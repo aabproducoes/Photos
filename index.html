@@ -2,44 +2,50 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Photo Gallery</title>
 <style>
-/* --------------  BASICS  -------------- */
+/* ----------  BASICS  ---------- */
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
 
-/* --------------  TOP BAR  -------------- */
+/* ----------  TOP BAR  ---------- */
 header{
   position:fixed;top:0;left:0;width:100%;height:50px;line-height:50px;
   text-align:center;background:rgba(0,0,0,.85);z-index:1000;
-  transition:transform .45s cubic-bezier(.55,.06,.68,.19);
+  transition:transform .45s cubic-bezier(.55,.06,.68,.19)
 }
 header.hidden{transform:translateY(-100%)}
 
-/* --------------  GALLERY  -------------- */
-.gallery-container{height:100vh;overflow:hidden;position:relative;perspective:700px}
+/* ----------  GALLERY  ---------- */
+.gallery-container{height:100vh;overflow:hidden;perspective:700px}
 .category{
   height:50vh;display:flex;flex-direction:column;gap:8px;
-  /* start state for roll-in */
-  opacity:0;transform-origin:center top;
-  transform:translateY(15vh) rotateX(-45deg);
+  opacity:0;transform:translateY(15vh) rotateX(-45deg);
+  transform-origin:center top
 }
 .category.show{animation:rollIn .65s ease-out forwards}
-@keyframes rollIn{
-  to{opacity:1;transform:translateY(0) rotateX(0)}
-}
-.category h2{
-  padding:6px;text-align:center;background:rgba(0,0,0,.6)
-}
-.grid{
-  flex:1;display:grid;gap:8px;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  padding:0 8px
-}
-.grid img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+@keyframes rollIn{to{opacity:1;transform:translateY(0) rotateX(0)}}
+.category h2{padding:6px;text-align:center;background:rgba(0,0,0,.6)}
 
-/* --------------  NAV BUTTONS  -------------- */
+.grid{
+  flex:1;display:grid;gap:8px;padding:0 8px;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr))
+}
+
+/* ----- photo + title overlay ----- */
+.photo-container{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden}
+.photo-container img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+.preview-text{
+  position:absolute;left:0;right:0;bottom:0;padding:6px;
+  background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
+  text-align:center;font-size:.9rem;
+  transform:translateY(100%);transition:.3s;
+  white-space:pre-wrap              /* ← keeps every word */
+}
+.photo-container:hover .preview-text{transform:translateY(0)}
+
+/* ----------  NAV BUTTONS ---------- */
 .nav{
   position:fixed;right:10px;top:50%;transform:translateY(-50%);
   display:flex;flex-direction:column;gap:8px;z-index:1001
@@ -66,69 +72,64 @@ header.hidden{transform:translateY(-100%)}
 
 <script>
 (async () => {
-  /* ---------- LOAD JSON & BUILD DOM ---------- */
+  /* ---- LOAD JSON ---- */
   const data = await fetch('photos.json').then(r => r.json());
   const gallery = document.getElementById('gallery');
+
+  /* ---- BUILD MARK-UP (now keeps full titles) ---- */
   data.categories.forEach(cat=>{
     const sec=document.createElement('section');
     sec.className='category';
-    sec.innerHTML=`
-      <h2>${cat.name}</h2>
+    sec.innerHTML=`<h2>${cat.name}</h2>
       <div class="grid">
-        ${cat.photos.map(p=>`<img src="${p.url}" alt="${p.alt}" loading="lazy">`).join('')}
+        ${cat.photos.map(p=>`
+          <div class="photo-container">
+            <img src="${p.url}" alt="${p.alt}" loading="lazy">
+            <div class="preview-text">${p.title}</div>
+          </div>`).join('')}
       </div>`;
     gallery.appendChild(sec);
   });
 
-  /* ---------- PAGING SET-UP ---------- */
+  /* ---- PAGING / ANIMATION ---- */
   const cats   = document.querySelectorAll('.category');
-  const step   = window.innerHeight/2;        // 50 vh
-  const maxIdx = cats.length-2;               // last visible pair
-  let idx = 0;
-  const up   = document.getElementById('up');
-  const down = document.getElementById('down');
-  const topbar = document.getElementById('topbar');
+  const step   = window.innerHeight/2;
+  const maxIdx = cats.length-2;
+  let idx=0;
 
-  const updateBtns = ()=>{
-    up.disabled   = idx===0;
-    down.disabled = idx===maxIdx;
-  };
-  const goTo = i=>{
-    gallery.scrollTo({top:i*step,behavior:'smooth'});
-    idx=i;updateBtns();
-  };
-  up  .addEventListener('click',()=>idx>0&&goTo(idx-1));
-  down.addEventListener('click',()=>idx<maxIdx&&goTo(idx+1));
+  const up=document.getElementById('up'),down=document.getElementById('down');
+  const topbar=document.getElementById('topbar');
+  const update=()=>{up.disabled=idx===0;down.disabled=idx===maxIdx};
+  const go=i=>{gallery.scrollTo({top:i*step,behavior:'smooth'});idx=i;update()};
 
-  /* ---------- WHEEL SCROLL (THROTTLED) ---------- */
-  let throttle=false;
+  up.addEventListener('click',  ()=>idx>0      && go(idx-1));
+  down.addEventListener('click',()=>idx<maxIdx && go(idx+1));
+
+  /* wheel scroll */
+  let lock=false;
   gallery.addEventListener('wheel',e=>{
     e.preventDefault();
-    if(throttle)return;
-    throttle=true;setTimeout(()=>throttle=false,300);
+    if(lock) return; lock=true; setTimeout(()=>lock=false,280);
     (e.deltaY>0?down:up).click();
   },{passive:false});
 
-  /* ---------- SHOW / HIDE TOP BAR ---------- */
-  gallery.addEventListener('scroll',()=>{
-    const s = gallery.scrollTop;
-    s>5 ? topbar.classList.add('hidden')
-        : topbar.classList.remove('hidden');
-    const i=Math.round(s/step);
-    if(i!==idx){idx=i;updateBtns();}
-  });
-
-  /* ---------- ROLL-IN WHEN SECTION ENTERS VIEW ---------- */
-  const obs = new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
+  /* hide top bar + roll-in reveal */
+  const io=new IntersectionObserver(en=>{
+    en.forEach(e=>{
       if(e.isIntersecting) e.target.classList.add('show');
     });
-  },{root:gallery,threshold:0.15});
-  cats.forEach(c=>obs.observe(c));
+  },{root:gallery,threshold:.15});
+  cats.forEach(c=>io.observe(c));
 
-  updateBtns();
+  gallery.addEventListener('scroll',()=>{
+    const s=gallery.scrollTop;
+    s>5 ? topbar.classList.add('hidden') : topbar.classList.remove('hidden');
+    const i=Math.round(s/step);
+    if(i!==idx){idx=i;update()}
+  });
+
+  update();               // initialise buttons
 })();
 </script>
-
 </body>
 </html>
