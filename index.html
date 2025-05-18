@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Photo Gallery</title>
 <style>
@@ -18,8 +18,9 @@ header{
 header.hidden{transform:translateY(-100%)}
 
 /* ---------- GALLERY / CATEGORY ---------- */
-.gallery-container{height:100vh;overflow:hidden;position:relative}
+.gallery-container{height:100vh;overflow:hidden}
 .category{
+  position:relative;          /* enables absolute centering for title */
   height:50vh;
   display:flex;flex-direction:column;gap:8px;
   opacity:0;transform:translateY(15vh) rotateX(-45deg);
@@ -29,12 +30,16 @@ header.hidden{transform:translateY(-100%)}
 .category.show{animation:rollIn .65s ease-out forwards}
 @keyframes rollIn{to{opacity:1;transform:translateY(0) rotateX(0)}}
 
-/* --- title moved 50 px down --- */
+/* --- centered h2 overlay --- */
 .category h2{
-  padding:6px;
-  text-align:center;
+  position:absolute;
+  top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  padding:8px 12px;
   background:rgba(0,0,0,.6);
-  margin-top:50px;                     /* <— added */
+  pointer-events:none;       /* clicks pass through to images */
+  text-align:center;
+  border-radius:4px
 }
 
 /* ---------- PHOTO CARD ---------- */
@@ -51,19 +56,16 @@ header.hidden{transform:translateY(-100%)}
 .photo:hover img{filter:brightness(.8)}
 .photo:hover{transform:scale(1.03)}
 
-/* --- caption positioned 100 px above bottom --- */
+/* caption 100 px above bottom */
 .preview{
-  position:absolute;left:0;right:0;bottom:100px;   /* <— moved up */
+  position:absolute;left:0;right:0;bottom:100px;
   padding:6px 4px;
   background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
-  transform:translateY(140%);                      /* hidden state */
-  transition:.3s;
+  transform:translateY(140%);transition:.3s;
   text-align:center;font-size:.9rem;white-space:normal;color:#fff;
   z-index:2;pointer-events:none
 }
-.photo:hover .preview{transform:translateY(0)}      /* slides up */
-
-/* ---------- NEON BORDER (set by JS) ---------- */
+.photo:hover .preview{transform:translateY(0)}
 
 /* ---------- NAV BUTTONS ---------- */
 .nav{
@@ -91,15 +93,14 @@ header.hidden{transform:translateY(-100%)}
 
 <script>
 (async () => {
-  /* ---------- LOAD JSON ---------- */
-  const data   = await fetch('photos.json').then(r => r.json());
-  const gallery= document.getElementById('gallery');
+  const data = await fetch('photos.json').then(r=>r.json());
+  const gallery = document.getElementById('gallery');
 
-  /* ---------- BUILD GALLERY ---------- */
+  /* create sections */
   data.categories.forEach(cat=>{
-    const sec=document.createElement('section');
-    sec.className='category';
-    sec.innerHTML=`
+    const s=document.createElement('section');
+    s.className='category';
+    s.innerHTML=`
       <h2>${cat.name}</h2>
       <div class="grid">
         ${cat.photos.map(p=>`
@@ -108,56 +109,41 @@ header.hidden{transform:translateY(-100%)}
             <figcaption class="preview">${p.title}</figcaption>
           </figure>`).join('')}
       </div>`;
-    gallery.appendChild(sec);
+    gallery.appendChild(s);
   });
 
-  /* ---------- RANDOM NEON BORDER ---------- */
+  /* neon borders */
   document.querySelectorAll('.photo').forEach(card=>{
-    const hue = Math.floor(Math.random()*360);
-    const neon=`hsl(${hue} 100% 50%)`;
-    card.style.boxShadow=`inset 0 0 12px 2px ${neon}, 0 0 12px 4px ${neon}`;
+    const h=Math.floor(Math.random()*360);
+    const neon=`hsl(${h} 100% 50%)`;
+    card.style.boxShadow=`inset 0 0 12px 2px ${neon},0 0 12px 4px ${neon}`;
   });
 
-  /* ---------- PAGING ---------- */
-  const cats   = document.querySelectorAll('.category');
-  const step   = window.innerHeight/2;
-  const maxIdx = cats.length-2;
+  /* paging */
+  const cats=document.querySelectorAll('.category');
+  const step=window.innerHeight/2;
+  const maxIdx=cats.length-2;
   let idx=0;
-
-  const up=document.getElementById('up');
-  const down=document.getElementById('down');
-  const bar=document.getElementById('topbar');
-
-  const update=()=>{up.disabled=idx===0;down.disabled=idx===maxIdx};
-  const go=i=>{
-    gallery.scrollTo({top:i*step,behavior:'smooth'});
-    idx=i;update();
-  };
-  up  .addEventListener('click',()=>idx>0      && go(idx-1));
-  down.addEventListener('click',()=>idx<maxIdx && go(idx+1));
-
-  /* wheel (throttled) */
+  const up=document.getElementById('up'),down=document.getElementById('down'),bar=document.getElementById('topbar');
+  const upd=()=>{up.disabled=idx===0;down.disabled=idx===maxIdx};
+  const go=i=>{gallery.scrollTo({top:i*step,behavior:'smooth'});idx=i;upd()};
+  up.addEventListener('click',()=>idx>0&&go(idx-1));
+  down.addEventListener('click',()=>idx<maxIdx&&go(idx+1));
   let lock=false;
   gallery.addEventListener('wheel',e=>{
-    e.preventDefault();
-    if(lock) return;
+    e.preventDefault();if(lock)return;
     lock=true;setTimeout(()=>lock=false,280);
     (e.deltaY>0?down:up).click();
   },{passive:false});
-
-  /* reveal sections + hide bar */
-  const io=new IntersectionObserver(entries=>{
-    entries.forEach(e=>e.isIntersecting&&e.target.classList.add('show'));
-  },{root:gallery,threshold:.12});
+  const io=new IntersectionObserver(en=>en.forEach(e=>e.isIntersecting&&e.target.classList.add('show')),
+                                   {root:gallery,threshold:.12});
   cats.forEach(c=>io.observe(c));
-
   gallery.addEventListener('scroll',()=>{
     bar.classList.toggle('hidden',gallery.scrollTop>5);
     const i=Math.round(gallery.scrollTop/step);
-    if(i!==idx){idx=i;update()}
+    if(i!==idx){idx=i;upd()}
   });
-
-  update();
+  upd();
 })();
 </script>
 </body>
