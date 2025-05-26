@@ -1,254 +1,245 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Photo Gallery</title>
-  <style>
-    /* ---------- RESET ---------- */
-    * { box-sizing:border-box; margin:0; padding:0 }
-    body { background:#000; color:#fff; font-family:sans-serif; overflow:hidden }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Photo Gallery</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#000;color:#fff;font-family:sans-serif;overflow-x:hidden}
 
-    /* ---------- CONTAINER ---------- */
-    .gallery-container {
-      position: relative;
-      padding:20px;
-      display: flex; flex-direction: column; align-items: center;
-      min-height:100vh;
-    }
+/* ---------- gallery wrapper ---------- */
+.gallery-container{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:20px;position:relative;overflow:hidden
+}
 
-    .category-title {
-      margin-bottom:16px;
-      font-size:1.5rem;
-      background:rgba(0,0,0,.6);
-      padding:8px 16px;
-      border-radius:4px;
-    }
+/* ---------- category title ---------- */
+.category-title{
+  margin-bottom:20px;padding:8px 16px;background:rgba(0,0,0,.6);
+  border-radius:4px;font-size:1.5rem;text-align:center
+}
 
-    /* ---------- GRID & PHOTOS ---------- */
-    .photo-grid {
-      display:grid;
-      grid-template-columns:repeat(3,minmax(200px,1fr));
-      gap:16px;
-      max-width:1000px;
-      position:relative;
-    }
-    .photo {
-      position:relative;
-      overflow:hidden;
-      border-radius:6px;
-      cursor:pointer;
-      transform-origin:50% 50%;
-      transition:transform .5s ease;
-    }
-    /* Enter animation */
-    .photo.enter {
-      opacity:0;
-      transform: translateX(var(--dx,0)) rotateY(var(--ry,15deg)) scale(.8);
-      animation:photoIn .6s forwards;
-    }
-    @keyframes photoIn {
-      to { opacity:1; transform: translateX(0) rotateY(0) scale(1); }
-    }
-    /* Exit animation */
-    .photo.exit {
-      animation:photoOut .5s forwards;
-    }
-    @keyframes photoOut {
-      to { opacity:0; transform: translateX(var(--dx,0)) rotateY(var(--ry,-15deg)) scale(.8); }
-    }
-    .photo img {
-      display:block; width:100%; height:100%; object-fit:cover;
-    }
-    .preview {
-      position:absolute;left:0;right:0;bottom:0;
-      background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
-      padding:6px; text-align:center; font-size:.9rem;
-      color:#fff; transform:translateY(100%);
-      transition:transform .3s;
-      pointer-events:none; z-index:2;
-    }
-    .photo:hover .preview {
-      transform:translateY(0);
-    }
+/* ---------- grid ---------- */
+.photo-grid{
+  display:grid;grid-template-columns:repeat(3,minmax(200px,300px));
+  gap:16px;justify-content:center;max-width:1000px;
+  transition:transform .45s ease,opacity .45s ease
+}
+.photo-grid.enter-from-right{opacity:0;transform:translateX(120%)}   /* entering */
+.photo-grid.enter-from-left {opacity:0;transform:translateX(-120%)}
+.photo-grid.exit-to-left    {opacity:0;transform:translateX(-120%)}   /* leaving  */
+.photo-grid.exit-to-right   {opacity:0;transform:translateX(120%)}
 
-    /* ---------- NAVIGATION ---------- */
-    .nav {
-      position:fixed; top:50%; left:0; right:0;
-      display:flex; justify-content:space-between;
-      padding:0 20px;
-      transform:translateY(-50%);
-      pointer-events:none;
-    }
-    .nav button {
-      pointer-events:all;
-      background:#0ff; border:none; border-radius:50%;
-      width:40px; height:40px; font-size:1.2rem; cursor:pointer;
-      transition:background .3s;
-    }
-    .nav button:disabled { background:#333; color:#777; cursor:not-allowed }
-    .nav button:hover:not(:disabled) { background:#5ff }
-    /* category labels */
-    .nav .label {
-      position:absolute; width:100px; text-align:center;
-      font-size:.9rem; background:rgba(0,0,0,.6);
-      padding:4px 8px; border-radius:4px;
-    }
-    #leftLabel { left:60px; transform:translateY(-50%) }
-    #rightLabel{ right:60px; transform:translateY(-50%) }
+.photo{
+  position:relative;aspect-ratio:1/1;overflow:hidden;border-radius:6px;
+  transform:perspective(1000px) rotateY(-12deg) scale(.95);
+  transition:transform .4s ease,filter .4s ease
+}
+.photo:nth-child(2){transform:perspective(1000px) rotateY(0deg) scale(.97)}
+.photo:nth-child(3){transform:perspective(1000px) rotateY(12deg) scale(.95)}
+.photo.loaded{transform:perspective(1000px) rotateY(var(--ry,0)) scale(1)}
 
-    /* ---------- LIGHTBOX ---------- */
-    #lightbox {
-      position:fixed; top:0; left:0; right:0; bottom:0;
-      background:rgba(0,0,0,.9);
-      display:none; align-items:center; justify-content:center;
-      z-index:2000; flex-direction:column;
-    }
-    #lightbox img {
-      max-width:90%; max-height:80%; border-radius:8px;
-    }
-    #lightbox .lb-nav {
-      position:absolute; top:50%; width:100%;
-      display:flex; justify-content:space-between;
-      padding:0 20px; transform:translateY(-50%);
-    }
-    #lightbox .lb-nav button {
-      background:rgba(255,255,255,.3); border:none;
-      width:50px; height:50px; border-radius:50%;
-      font-size:2rem; color:#fff; cursor:pointer;
-    }
-    #lightbox .close {
-      position:absolute; top:20px; right:20px;
-      background:rgba(255,255,255,.3); border:none;
-      width:40px; height:40px; border-radius:50%;
-      font-size:1.5rem; color:#fff; cursor:pointer;
-    }
-  </style>
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.photo:hover{transform:perspective(1000px) rotateY(var(--ry,0)) scale(1.05)}
+.photo:hover img{filter:brightness(.8)}
+
+/* caption strip */
+.preview{
+  position:absolute;left:0;right:0;bottom:6px;
+  padding:4px 6px;font-size:.9rem;text-align:center;color:#fff;
+  background:rgba(0,0,0,.6);border-radius:4px 4px 0 0;
+  pointer-events:none
+}
+
+.photo.empty{background:#222;display:flex;align-items:center;justify-content:center;color:#777;font-size:.85rem}
+
+/* ---------- nav arrows & labels ---------- */
+.nav{position:fixed;top:50%;left:0;right:0;transform:translateY(-50%);display:flex;justify-content:space-between;z-index:1001;pointer-events:none}
+.arrow-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:auto}
+.arrow-wrap span{font-size:.8rem;color:#0ff;min-width:80px;text-align:center}
+.nav button{
+  width:40px;height:40px;border:none;border-radius:50%;
+  background:#0ff;color:#000;font-size:1.2rem;cursor:pointer;transition:.3s
+}
+.nav button:hover:not(:disabled){background:#5ff}
+.nav button:disabled{background:#333;color:#777;cursor:not-allowed}
+.arrow-wrap button:disabled+span{opacity:.3}
+
+/* ---------- lightbox overlay ---------- */
+.lightbox{
+  position:fixed;inset:0;background:rgba(0,0,0,.95);
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:2000
+}
+.lightbox.open{display:flex}
+.lightbox figure{max-width:90vw;max-height:80vh;position:relative}
+.lightbox img{width:100%;height:100%;object-fit:contain}
+.lightbox .lb-title{
+  margin-top:8px;text-align:center;font-size:1.1rem
+}
+.lb-nav{position:absolute;top:50%;width:100%;display:flex;justify-content:space-between;transform:translateY(-50%)}
+.lb-nav button{
+  width:48px;height:48px;border:none;border-radius:50%;font-size:1.3rem;font-weight:bold;
+  background:#0ff;color:#000;cursor:pointer;opacity:.8;transition:.3s
+}
+.lb-nav button:hover{opacity:1}
+
+.loading,.error{font-size:1.2rem;text-align:center;padding:20px}
+.loading::before{content:'';display:inline-block;width:20px;height:20px;border:2px solid #0ff;border-top-color:transparent;border-radius:50%;animation:spin 1s linear infinite;margin-right:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
 </head>
 <body>
-  <div class="gallery-container" id="gallery">
-    <div class="loading">Loading photos…</div>
-  </div>
 
-  <div class="nav">
-    <button id="left" disabled>←</button>
-    <div id="leftLabel" class="label"></div>
-    <button id="right" disabled>→</button>
-    <div id="rightLabel" class="label"></div>
-  </div>
+<div class="gallery-container" id="gallery"><div class="loading">Loading photos...</div></div>
 
-  <div id="lightbox">
-    <button class="close" aria-label="Close">×</button>
+<!-- navigation -->
+<div class="nav">
+  <div class="arrow-wrap">
+    <button id="left" disabled aria-label="Previous">&larr;</button>
+    <span id="leftLabel"></span>
+  </div>
+  <div class="arrow-wrap">
+    <button id="right" disabled aria-label="Next">&rarr;</button>
+    <span id="rightLabel"></span>
+  </div>
+</div>
+
+<!-- lightbox -->
+<div class="lightbox" id="lightbox" tabindex="-1">
+  <figure><img id="lbImg"><figcaption class="lb-title" id="lbTitle"></figcaption>
     <div class="lb-nav">
-      <button id="lb-prev" aria-label="Previous">←</button>
-      <button id="lb-next" aria-label="Next">→</button>
+      <button id="lbPrev" aria-label="Prev">&larr;</button>
+      <button id="lbNext" aria-label="Next">&rarr;</button>
     </div>
-    <img src="" alt="" id="lb-img">
-    <div class="preview" id="lb-caption"></div>
-  </div>
+  </figure>
+</div>
 
-  <script>
-  (async()=>{
-    const gallery = document.getElementById('gallery');
-    const leftBtn = document.getElementById('left');
-    const rightBtn= document.getElementById('right');
-    const leftLbl = document.getElementById('leftLabel');
-    const rightLbl= document.getElementById('rightLabel');
-    const lb       = document.getElementById('lightbox');
-    const lbImg    = document.getElementById('lb-img');
-    const lbCap    = document.getElementById('lb-caption');
-    const lbPrev   = document.getElementById('lb-prev');
-    const lbNext   = document.getElementById('lb-next');
-    const lbClose  = lb.querySelector('.close');
+<script>
+(async()=>{
+  const gallery = document.getElementById('gallery');
+  const leftBtn = document.getElementById('left');
+  const rightBtn= document.getElementById('right');
+  const leftLabel=document.getElementById('leftLabel');
+  const rightLabel=document.getElementById('rightLabel');
 
-    let data;
-    try {
-      data = await fetch('photos.json').then(r=>r.json());
-    } catch {
-      gallery.innerHTML = '<div class="error">Failed to load.</div>';
-      return;
+  /* lightbox refs */
+  const lb     = document.getElementById('lightbox');
+  const lbImg  = document.getElementById('lbImg');
+  const lbTitle= document.getElementById('lbTitle');
+  const lbPrev = document.getElementById('lbPrev');
+  const lbNext = document.getElementById('lbNext');
+
+  /* ---- load JSON ---- */
+  let data;
+  try{data=await fetch('photos.json').then(r=>r.json());}
+  catch(e){gallery.innerHTML='<div class="error">Failed to load photos.</div>';return;}
+  if(!data.categories?.length){gallery.innerHTML='<div class="error">No photos.</div>';return;}
+
+  /* ---- state ---- */
+  let catIndex=0,start=0,pp=3;
+
+  /* ---- helpers ---- */
+  const photoOf=(c,i)=>data.categories[c]?.photos[i]||null;
+  const setLabels=(()=>{
+    const prevCat=data.categories[catIndex-1]?.name||'';
+    const nextCat=data.categories[catIndex+1]?.name||'';
+    leftLabel.textContent = (start===0?prevCat:'')||'';
+    rightLabel.textContent=(start+pp>=data.categories[catIndex].photos.length?nextCat:'')||'';
+  });
+
+  /* ---- render ---- */
+  const render=dir=>{
+    const cat=data.categories[catIndex];
+    const photos=[...cat.photos.slice(start,start+pp)];
+    while(photos.length<pp)photos.push({url:'',title:'',alt:''});
+    /* grid with enter / exit */
+    const oldGrid=gallery.querySelector('.photo-grid');
+    if(oldGrid){
+      oldGrid.classList.add(dir==='left'?'exit-to-left':'exit-to-right');
+      oldGrid.addEventListener('transitionend',()=>oldGrid.remove(),{once:true});
     }
-    let catIdx=0, start=0, per=3;
-    let lightIdx=0;
+    const grid=document.createElement('div');
+    grid.className='photo-grid '+(dir==='left'?'enter-from-right':'enter-from-left');
+    grid.innerHTML=photos.map((p,i)=>`
+      <figure class="photo${p.url?'':' empty'}" style="--ry:${i===0?-12:i===2?12:0}deg">
+        ${p.url?`<img src="${p.url}" alt="${p.alt||''}" loading="lazy">
+                 <figcaption class="preview">${p.title||''}</figcaption>`:'No image'}
+      </figure>`).join('');
+    gallery.innerHTML=`<h2 class="category-title">${cat.name}</h2>`;
+    gallery.appendChild(grid);
+    requestAnimationFrame(()=>grid.classList.remove('enter-from-left','enter-from-right'));/* trigger */
 
-    function updateLabels(){
-      leftLbl.textContent  = data.categories[catIdx-1]?.name || '';
-      rightLbl.textContent = data.categories[catIdx+1]?.name || '';
-    }
-
-    function render(){
-      gallery.innerHTML = `
-        <div class="category-title">${data.categories[catIdx].name}</div>
-        <div class="photo-grid"></div>`;
-      const grid = gallery.querySelector('.photo-grid');
-      const photos = data.categories[catIdx].photos.slice(start, start+per);
-      while(photos.length<per) photos.push({url:'',alt:'',title:''});
-      photos.forEach((p,i)=>{
-        const fig = document.createElement('figure');
-        fig.className='photo enter';
-        fig.style.setProperty('--dx', (i-per/2)*50+'px');
-        fig.style.setProperty('--ry', (i-per/2)*15+'deg');
-        if(!p.url) {
-          fig.classList.add('empty');
-          fig.textContent='No Image';
-        } else {
-          fig.innerHTML=`
-            <img src="${p.url}" alt="${p.alt}">
-            <figcaption class="preview">${p.title}</figcaption>`;
-          fig.addEventListener('click',()=>{
-            lightIdx = start + i;
-            openLightbox();
-          });
-        }
-        grid.append(fig);
-      });
-      leftBtn.disabled  = (catIdx===0 && start===0);
-      rightBtn.disabled = (catIdx===data.categories.length-1 && start+per>=data.categories[catIdx].photos.length);
-      updateLabels();
-    }
-
-    function page(dir){
-      const cat = data.categories[catIdx].photos.length;
-      const nextStart = start + dir*per;
-      if(nextStart>=0 && nextStart+per<=cat){
-        start = nextStart;
-      } else if(dir>0 && catIdx<data.categories.length-1){
-        catIdx++; start=0;
-      } else if(dir<0 && catIdx>0){
-        catIdx--; start = Math.max(0, data.categories[catIdx].photos.length-per);
+    /* neon borders & click */
+    [...grid.children].forEach((fig,idx)=>{
+      if(!fig.classList.contains('empty')){
+        const hue=Math.floor(Math.random()*360);
+        fig.style.boxShadow=`inset 0 0 12px 2px hsl(${hue} 100% 50%),0 0 12px 4px hsl(${hue} 100% 50%)`;
+        fig.addEventListener('click',()=>openLightbox(start+idx));
       }
-      // animate out
-      document.querySelectorAll('.photo').forEach((el,i)=>{
-        el.classList.add('exit');
-      });
-      setTimeout(()=>{
-        render();
-      },300);
-    }
-
-    function openLightbox(){
-      const curr = data.categories[catIdx].photos[lightIdx];
-      lbImg.src = curr.url;
-      lbCap.textContent = curr.title;
-      lb.style.display='flex';
-    }
-    function closeLightbox(){
-      lb.style.display='none';
-    }
-    lbPrev.onclick = ()=>{ lightIdx = Math.max(0, lightIdx-1); openLightbox() };
-    lbNext.onclick = ()=>{ lightIdx = Math.min(data.categories[catIdx].photos.length-1, lightIdx+1); openLightbox() };
-    lbClose.onclick = closeLightbox;
-    document.addEventListener('keydown',e=>{
-      if(e.key==='Escape') closeLightbox();
-      if(e.key==='ArrowLeft'&&!leftBtn.disabled) leftBtn.click();
-      if(e.key==='ArrowRight'&&!rightBtn.disabled) rightBtn.click();
     });
 
-    leftBtn.onclick  = ()=>page(-1);
-    rightBtn.onclick = ()=>page(1);
+    /* buttons */
+    leftBtn.disabled = catIndex===0&&start===0;
+    rightBtn.disabled= catIndex===data.categories.length-1 && start+pp>=cat.photos.length;
+    setLabels();
+  };
 
-    render();
-  })();
-  </script>
+  /* ---- navigation ---- */
+  leftBtn.onclick=()=>{
+    if(start>0) start-=pp;
+    else if(catIndex>0){catIndex--;start=Math.max(0,data.categories[catIndex].photos.length-pp);}
+    render('right');
+  };
+  rightBtn.onclick=()=>{
+    const cat=data.categories[catIndex];
+    if(start+pp<cat.photos.length) start+=pp;
+    else if(catIndex<data.categories.length-1){catIndex++;start=0;}
+    render('left');
+  };
+  document.addEventListener('keydown',e=>{
+    if(lb.classList.contains('open')){
+      if(e.key==='Escape'){closeLightbox();}
+      if(e.key==='ArrowLeft')lbPrev.click();
+      if(e.key==='ArrowRight')lbNext.click();
+    }else{
+      if(e.key==='ArrowLeft'&&!leftBtn.disabled)leftBtn.click();
+      if(e.key==='ArrowRight'&&!rightBtn.disabled)rightBtn.click();
+    }
+  });
+
+  /* ---- lightbox ---- */
+  let lbIndex=0;
+  const openLightbox=i=>{
+    lbIndex=i;
+    showLbPhoto();
+    lb.classList.add('open');
+  };
+  const closeLightbox=()=>lb.classList.remove('open');
+  const showLbPhoto=()=>{
+    const p=photoOf(catIndex,lbIndex);
+    if(!p)return;
+    lbImg.src=p.url;lbTitle.textContent=p.title||'';
+    lbPrev.disabled = lbIndex===0;
+    lbNext.disabled = lbIndex>=data.categories[catIndex].photos.length-1;
+  };
+  lbPrev.onclick=()=>{if(lbIndex>0){lbIndex--;showLbPhoto();}};
+  lbNext.onclick=()=>{if(lbIndex<data.categories[catIndex].photos.length-1){lbIndex++;showLbPhoto();}};
+  lb.addEventListener('click',e=>{if(e.target===lb)closeLightbox();});
+
+  /* ---- swipe for grid ---- */
+  let x0=0;
+  gallery.addEventListener('touchstart',e=>x0=e.touches[0].clientX);
+  gallery.addEventListener('touchend',e=>{
+    const dx=x0-e.changedTouches[0].clientX;
+    if(dx>50&&!rightBtn.disabled)rightBtn.click();
+    if(dx<-50&&!leftBtn.disabled)leftBtn.click();
+  });
+
+  /* init */
+  render('left');
+})();
+</script>
 </body>
 </html>
