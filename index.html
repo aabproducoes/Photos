@@ -5,11 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Photo Gallery</title>
   <style>
-    /* ---------- RESET ---------- */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { background: #000; color: #fff; font-family: sans-serif; overflow-x: hidden; }
 
-    /* ---------- GALLERY CONTAINER ---------- */
     .gallery-container {
       display: flex;
       flex-direction: column;
@@ -20,7 +18,6 @@
       position: relative;
     }
 
-    /* ---------- CATEGORY TITLE ---------- */
     .category-title {
       margin-bottom: 20px;
       padding: 8px 16px;
@@ -30,20 +27,31 @@
       text-align: center;
     }
 
-    /* ---------- PHOTO GRID ---------- */
     .photo-grid {
       display: grid;
       grid-template-columns: repeat(3, minmax(200px, 300px));
       gap: 16px;
       justify-content: center;
       max-width: 1000px;
+      opacity: 1;
+      transition: opacity 0.3s ease;
     }
+    .photo-grid.transition {
+      opacity: 0;
+    }
+
     .photo {
       position: relative;
       aspect-ratio: 1/1;
       overflow: hidden;
       border-radius: 6px;
-      transition: transform 0.3s ease;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    .photo-grid.loaded .photo {
+      opacity: 1;
+      transform: scale(1);
     }
     .photo img {
       width: 100%;
@@ -57,6 +65,16 @@
     .photo:hover img {
       filter: brightness(0.8);
     }
+    .photo.empty {
+      background: #222;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #777;
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
     .preview {
       position: absolute;
       bottom: 0;
@@ -75,7 +93,6 @@
       transform: translateY(0);
     }
 
-    /* ---------- NAV BUTTONS ---------- */
     .nav {
       position: fixed;
       top: 50%;
@@ -106,11 +123,24 @@
       cursor: not-allowed;
     }
 
-    /* ---------- LOADING/ERROR ---------- */
     .loading, .error {
       font-size: 1.2rem;
       text-align: center;
       padding: 20px;
+    }
+    .loading::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 2px solid #0ff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-right: 10px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -120,8 +150,8 @@
   </div>
 
   <div class="nav">
-    <button id="left" disabled>←</button>
-    <button id="right" disabled>→</button>
+    <button id="left" disabled aria-label="Previous three photos">←</button>
+    <button id="right" disabled aria-label="Next three photos">→</button>
   </div>
 
   <script>
@@ -133,10 +163,19 @@
       // Load photos.json
       let data;
       try {
+        console.log('Fetching photos.json...');
         data = await fetch('photos.json').then(r => r.json());
+        console.log('Data loaded:', data);
       } catch (error) {
-        gallery.innerHTML = '<div class="error">Failed to load photos. Please try again later.</div>';
         console.error('Error fetching photos:', error);
+        gallery.innerHTML = '<div class="error">Failed to load photos. Please try again later.</div>';
+        return;
+      }
+
+      // Validate data
+      if (!data.categories || data.categories.length === 0) {
+        console.warn('No categories found in photos.json');
+        gallery.innerHTML = '<div class="error">No photos available.</div>';
         return;
       }
 
@@ -147,10 +186,18 @@
 
       // Render photos
       const renderPhotos = () => {
+        console.log('Rendering: category=', currentCategory, 'startIndex=', currentStartIndex);
         const category = data.categories[currentCategory];
-        const photos = category.photos.slice(currentStartIndex, currentStartIndex + photosPerPage);
+        if (!category || !category.photos) {
+          console.warn('Invalid category:', category);
+          gallery.innerHTML = '<div class="error">Invalid category data.</div>';
+          return;
+        }
 
-        // Pad with empty photos if less than 3
+        const photos = category.photos.slice(currentStartIndex, currentStartIndex + photosPerPage);
+        console.log('Photos to render:', photos);
+
+        // Pad with empty photos if needed
         while (photos.length < photosPerPage) {
           photos.push({ url: '', alt: '', title: '' });
         }
@@ -163,7 +210,7 @@
                 ${p.url ? `
                   <img src="${p.url}" alt="${p.alt}" loading="lazy">
                   <figcaption class="preview">${p.title}</figcaption>
-                ` : ''}
+                ` : 'No image'}
               </figure>
             `).join('')}
           </div>
@@ -172,43 +219,84 @@
         // Add neon borders
         document.querySelectorAll('.photo:not(.empty)').forEach(card => {
           const h = Math.floor(Math.random() * 360);
-          const neon = `hsl(${h} 100% 50%)`;
-          card.style.boxShadow = `inset 0 0 12px 2px ${neon}, 0 0 12px 4px ${neon}`;
+          card.style.boxShadow = `inset 0 0 12px 2px hsl(${h} 100% 50%), 0 0 12px 4px hsl(${h} 100% 50%)`;
         });
 
+        // Add loaded class for animations
+        setTimeout(() => gallery.querySelector('.photo-grid')?.classList.add('loaded'), 10);
+
         // Update button states
-        leftBtn.disabled = currentStartIndex === 0;
-        rightBtn.disabled = currentStartIndex + photosPerPage >= category.photos.length;
+        const totalPhotos = category.photos.length;
+        leftBtn.disabled = currentStartIndex === 0 && currentCategory === 0;
+        rightBtn.disabled = currentStartIndex + photosPerPage >= totalPhotos && currentCategory === data.categories.length - 1;
+        console.log('Button states: left=', leftBtn.disabled, 'right=', rightBtn.disabled);
       };
 
       // Navigation
       leftBtn.addEventListener('click', () => {
+        console.log('Left button clicked');
         if (currentStartIndex > 0) {
           currentStartIndex -= photosPerPage;
-          renderPhotos();
+        } else if (currentCategory > 0) {
+          currentCategory--;
+          currentStartIndex = Math.max(0, data.categories[currentCategory].photos.length - photosPerPage);
         }
+        gallery.classList.add('transition');
+        setTimeout(() => {
+          renderPhotos();
+          gallery.classList.remove('transition');
+        }, 300);
       });
 
       rightBtn.addEventListener('click', () => {
+        console.log('Right button clicked');
         const category = data.categories[currentCategory];
         if (currentStartIndex + photosPerPage < category.photos.length) {
           currentStartIndex += photosPerPage;
-          renderPhotos();
+        } else if (currentCategory < data.categories.length - 1) {
+          currentCategory++;
+          currentStartIndex = 0;
         }
+        gallery.classList.add('transition');
+        setTimeout(() => {
+          renderPhotos();
+          gallery.classList.remove('transition');
+        }, 300);
       });
 
       // Keyboard navigation
       document.addEventListener('keydown', e => {
-        if (e.key === 'ArrowLeft' && !leftBtn.disabled) leftBtn.click();
-        if (e.key === 'ArrowRight' && !rightBtn.disabled) rightBtn.click();
+        if (e.key === 'ArrowLeft' && !leftBtn.disabled) {
+          console.log('ArrowLeft pressed');
+          leftBtn.click();
+        }
+        if (e.key === 'ArrowRight' && !rightBtn.disabled) {
+          console.log('ArrowRight pressed');
+          rightBtn.click();
+        }
+      });
+
+      // Swipe support
+      let touchStartX = 0;
+      gallery.addEventListener('touchstart', e => {
+        touchStartX = e.touches[0].clientX;
+      });
+      gallery.addEventListener('touchend', e => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const delta = touchStartX - touchEndX;
+        if (delta > 50 && !rightBtn.disabled) {
+          console.log('Swipe right');
+          rightBtn.click();
+        }
+        if (delta < -50 && !leftBtn.disabled) {
+          console.log('Swipe left');
+          leftBtn.click();
+        }
       });
 
       // Initialize
-      if (data.categories.length > 0) {
-        renderPhotos();
-      } else {
-        gallery.innerHTML = '<div class="error">No photos available.</div>';
-      }
+      console.log('Initializing gallery');
+      renderPhotos();
     })();
   </script>
 </body>
