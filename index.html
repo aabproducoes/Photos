@@ -1,192 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Photo Gallery</title>
-<style>
-/* ---------- RESET ---------- */
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  background:#000;
-  color:#fff;
-  font-family:sans-serif;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  min-height:100vh;
-  overflow:hidden;
-}
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Photo Gallery</title>
+  <style>
+    /* ---------- RESET ---------- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #000; color: #fff; font-family: sans-serif; overflow-x: hidden; }
 
-/* ---------- TOP BAR ---------- */
-header{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:40px;
-  line-height:40px;
-  text-align:center;
-  background:rgba(0,0,0,.85);
-  z-index:1000;
-}
+    /* ---------- GALLERY CONTAINER ---------- */
+    .gallery-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+      position: relative;
+    }
 
-/* ---------- GALLERY / CATEGORY ---------- */
-.gallery-container{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-  gap:5px;
-}
-.category{
-  position:relative;
-  width:100%;
-  height:38%;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  perspective:800px;
-}
+    /* ---------- CATEGORY TITLE ---------- */
+    .category-title {
+      margin-bottom: 20px;
+      padding: 8px 16px;
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 4px;
+      font-size: 1.5rem;
+      text-align: center;
+    }
 
-/* Category titles */
-.category h2{
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
-  padding:6px 10px;
-  background:rgba(0,0,0,.6);
-  border-radius:4px;
-  pointer-events:none;
-  text-align:center;
-  font-size:1rem;
-}
-.category:first-child h2{top:0;}
-.category:last-child h2{bottom:0;}
+    /* ---------- PHOTO GRID ---------- */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(200px, 300px));
+      gap: 16px;
+      justify-content: center;
+      max-width: 1000px;
+    }
+    .photo {
+      position: relative;
+      aspect-ratio: 1/1;
+      overflow: hidden;
+      border-radius: 6px;
+      transition: transform 0.3s ease;
+    }
+    .photo img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    .photo:hover {
+      transform: scale(1.05);
+    }
+    .photo:hover img {
+      filter: brightness(0.8);
+    }
+    .preview {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 6px 4px;
+      background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.3));
+      transform: translateY(100%);
+      transition: transform 0.3s ease;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #fff;
+      z-index: 2;
+    }
+    .photo:hover .preview {
+      transform: translateY(0);
+    }
 
-/* ---------- PHOTO CARD ---------- */
-.hand{
-  display:flex;
-  justify-content:center;
-  gap:8px;
-  position:relative;
-}
-.photo{
-  position:relative;
-  width:160px;
-  aspect-ratio:1/1;
-  overflow:hidden;
-  border-radius:6px;
-  isolation:isolate;
-  transform:rotate(0deg);
-  transform-origin:center bottom;
-  opacity:1;
-  transition:transform .5s ease, opacity .5s ease;
-}
-/* Fan out cards with increased overlap */
-.hand .photo:nth-child(1){
-  transform:rotate(-6deg);
-  left:-20px; /* Increased overlap */
-  z-index:1;
-}
-.hand .photo:nth-child(2){
-  transform:rotate(0deg);
-  z-index:3; /* Middle card on top */
-}
-.hand .photo:nth-child(3){
-  transform:rotate(6deg);
-  left:20px; /* Increased overlap */
-  z-index:1;
-}
-/* Flip bottom category cards */
-.category:last-child .photo{
-  transform:scaleY(-1) rotate(0deg);
-}
-.category:last-child .hand .photo:nth-child(1){
-  transform:scaleY(-1) rotate(-6deg);
-  left:-20px;
-}
-.category:last-child .hand .photo:nth-child(2){
-  transform:scaleY(-1) rotate(0deg);
-}
-.category:last-child .hand .photo:nth-child(3){
-  transform:scaleY(-1) rotate(6deg);
-  left:20px;
-}
+    /* ---------- NAV BUTTONS ---------- */
+    .nav {
+      position: fixed;
+      top: 50%;
+      left: 10px;
+      right: 10px;
+      display: flex;
+      justify-content: space-between;
+      transform: translateY(-50%);
+      z-index: 1001;
+    }
+    .nav button {
+      width: 40px;
+      height: 40px;
+      border: none;
+      border-radius: 50%;
+      background: #0ff;
+      color: #000;
+      font-size: 1.2rem;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .nav button:hover:not(:disabled) {
+      background: #5ff;
+    }
+    .nav button:disabled {
+      background: #333;
+      color: #777;
+      cursor: not-allowed;
+    }
 
-.photo img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-.photo:hover img{filter:brightness(.8);}
-.photo:hover{
-  transform:scale(1.2); /* Maintain zoom */
-  z-index:10; /* Ensure hovered card is on top */
-}
-
-/* Caption */
-.preview{
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:60px;
-  padding:5px 3px;
-  background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
-  transform:translateY(140%);
-  transition:.3s;
-  text-align:center;
-  font-size:.8rem;
-  white-space:normal;
-  color:#fff;
-  z-index:2;
-  pointer-events:none;
-}
-.photo:hover .preview{transform:translateY(0);}
-.category:last-child .preview{
-  transform:scaleY(-1) translateY(-140%);
-}
-.category:last-child .photo:hover .preview{transform:scaleY(-1) translateY(0);}
-</style>
+    /* ---------- LOADING/ERROR ---------- */
+    .loading, .error {
+      font-size: 1.2rem;
+      text-align: center;
+      padding: 20px;
+    }
+  </style>
 </head>
 <body>
+  <div class="gallery-container" id="gallery">
+    <div class="loading">Loading photos...</div>
+  </div>
 
-<header id="topbar">Photos</header>
+  <div class="nav">
+    <button id="left" disabled>←</button>
+    <button id="right" disabled>→</button>
+  </div>
 
-<div class="gallery-container" id="gallery"></div>
+  <script>
+    (async () => {
+      const gallery = document.getElementById('gallery');
+      const leftBtn = document.getElementById('left');
+      const rightBtn = document.getElementById('right');
 
-<script>
-(async () => {
-  /* ---------- LOAD JSON ---------- */
-  const data = await fetch('photos.json').then(r=>r.json());
-  const gallery = document.getElementById('gallery');
+      // Load photos.json
+      let data;
+      try {
+        data = await fetch('photos.json').then(r => r.json());
+      } catch (error) {
+        gallery.innerHTML = '<div class="error">Failed to load photos. Please try again later.</div>';
+        console.error('Error fetching photos:', error);
+        return;
+      }
 
-  // Take only the first two categories
-  data.categories.slice(0,2).forEach((cat, index) => {
-    const sec=document.createElement('section');
-    sec.className='category';
-    sec.innerHTML=`
-      <h2>${cat.name}</h2>
-      <div class="hand">
-        ${cat.photos.slice(0,3).map(p=>`
-          <figure class="photo">
-            <img src="${p.url}" alt="${p.alt}" loading="lazy">
-            <figcaption class="preview">${p.title}</figcaption>
-          </figure>`).join('')}
-      </div>`;
-    gallery.appendChild(sec);
-  });
+      // State
+      let currentCategory = 0;
+      let currentStartIndex = 0;
+      const photosPerPage = 3;
 
-  /* Neon borders */
-  document.querySelectorAll('.photo').forEach(card=>{
-    const h=Math.floor(Math.random()*360);
-    const neon=`hsl(${h} 100% 50%)`;
-    card.style.boxShadow=`inset 0 0 8px 1px ${neon},0 0 8px 2px ${neon}`;
-  });
-})();
-</script>
+      // Render photos
+      const renderPhotos = () => {
+        const category = data.categories[currentCategory];
+        const photos = category.photos.slice(currentStartIndex, currentStartIndex + photosPerPage);
+
+        // Pad with empty photos if less than 3
+        while (photos.length < photosPerPage) {
+          photos.push({ url: '', alt: '', title: '' });
+        }
+
+        gallery.innerHTML = `
+          <h2 class="category-title">${category.name}</h2>
+          <div class="photo-grid">
+            ${photos.map(p => `
+              <figure class="photo${p.url ? '' : ' empty'}">
+                ${p.url ? `
+                  <img src="${p.url}" alt="${p.alt}" loading="lazy">
+                  <figcaption class="preview">${p.title}</figcaption>
+                ` : ''}
+              </figure>
+            `).join('')}
+          </div>
+        `;
+
+        // Add neon borders
+        document.querySelectorAll('.photo:not(.empty)').forEach(card => {
+          const h = Math.floor(Math.random() * 360);
+          const neon = `hsl(${h} 100% 50%)`;
+          card.style.boxShadow = `inset 0 0 12px 2px ${neon}, 0 0 12px 4px ${neon}`;
+        });
+
+        // Update button states
+        leftBtn.disabled = currentStartIndex === 0;
+        rightBtn.disabled = currentStartIndex + photosPerPage >= category.photos.length;
+      };
+
+      // Navigation
+      leftBtn.addEventListener('click', () => {
+        if (currentStartIndex > 0) {
+          currentStartIndex -= photosPerPage;
+          renderPhotos();
+        }
+      });
+
+      rightBtn.addEventListener('click', () => {
+        const category = data.categories[currentCategory];
+        if (currentStartIndex + photosPerPage < category.photos.length) {
+          currentStartIndex += photosPerPage;
+          renderPhotos();
+        }
+      });
+
+      // Keyboard navigation
+      document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowLeft' && !leftBtn.disabled) leftBtn.click();
+        if (e.key === 'ArrowRight' && !rightBtn.disabled) rightBtn.click();
+      });
+
+      // Initialize
+      if (data.categories.length > 0) {
+        renderPhotos();
+      } else {
+        gallery.innerHTML = '<div class="error">No photos available.</div>';
+      }
+    })();
+  </script>
 </body>
 </html>
