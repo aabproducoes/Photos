@@ -1,121 +1,172 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Mirror-Card Sections</title>
-  <style>
-    /* reset & base */
-    * { box-sizing: border-box; margin:0; padding:0 }
-    body, html { height:100%; overflow:hidden; background:#000; }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Photo Gallery</title>
+<style>
+/* ---------- RESET ---------- */
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#000;
+  color:#fff;
+  font-family:sans-serif;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  overflow:hidden; /* Prevent scrolling */
+}
 
-    /* container that “pages” by half-screen */
-    #gallery {
-      height:100vh;
-      overflow:hidden;
-      scroll-behavior: smooth;
-    }
-    .section {
-      position: relative;
-      height:50vh;            /* two sections fill the screen */
-    }
+/* ---------- TOP BAR ---------- */
+header{
+  position:fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:50px;
+  line-height:50px;
+  text-align:center;
+  background:rgba(0,0,0,.85);
+  z-index:1000;
+}
 
-    /* section titles: top vs bottom */
-    .title {
-      position: absolute;
-      left:50%;
-      transform: translateX(-50%);
-      color:#fff;
-      background:rgba(0,0,0,.6);
-      padding: 6px 12px;
-      border-radius:4px;
-      font-size:1.2rem;
-      pointer-events: none;
-    }
-    .title.top    { top: 10px; }
-    .title.bottom { bottom: 10px; }
+/* ---------- GALLERY / CATEGORY ---------- */
+.gallery-container{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  height:100vh;
+  gap:10px; /* Reduced gap to bring hands closer */
+}
+.category{
+  position:relative;
+  width:100%;
+  height:45%; /* Reduced height to tighten vertical centering */
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  perspective:800px;
+}
 
-    /* center-aligned row of cards */
-    .cards {
-      position: absolute;
-      top:50%; left:50%;
-      transform: translate(-50%,-50%);
-      display: flex;
-      gap: 16px;
-    }
-    .card {
-      width: 180px;
-      height: 120px;
-      overflow: hidden;
-      border-radius: 8px;
-    }
-    .card img {
-      width:100%; height:100%;
-      object-fit: cover;
-      display: block;
-    }
-    /* mirrored cards: flip vertically */
-    .card.flipped img {
-      transform: scaleY(-1);
-    }
-  </style>
+/* Category titles */
+.category h2{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  padding:8px 12px;
+  background:rgba(0,0,0,.6);
+  border-radius:4px;
+  pointer-events:none;
+  text-align:center;
+  font-size:1.2rem; /* Slightly smaller for balance */
+}
+.category:first-child h2{top:0;}
+.category:last-child h2{bottom:0;}
+
+/* ---------- PHOTO CARD ---------- */
+.hand{
+  display:flex;
+  justify-content:center;
+  gap:10px; /* Reduced gap between cards */
+}
+.photo{
+  position:relative;
+  width:180px; /* Slightly smaller for tighter centering */
+  aspect-ratio:1/1;
+  overflow:hidden;
+  border-radius:6px;
+  isolation:isolate;
+  transform:rotate(0deg);
+  transform-origin:center bottom;
+  opacity:1;
+  transition:transform .7s ease, opacity .6s ease;
+}
+/* Fan out cards */
+.hand .photo:nth-child(1){transform:rotate(-8deg);} /* Reduced rotation for compactness */
+.hand .photo:nth-child(2){transform:rotate(0deg);}
+.hand .photo:nth-child(3){transform:rotate(8deg);}
+/* Flip bottom category cards */
+.category:last-child .photo{
+  transform:scaleY(-1) rotate(0deg);
+}
+.category:last-child .hand .photo:nth-child(1){transform:scaleY(-1) rotate(-8deg);}
+.category:last-child .hand .photo:nth-child(2){transform:scaleY(-1) rotate(0deg);}
+.category:last-child .hand .photo:nth-child(3){transform:scaleY(-1) rotate(8deg);}
+
+.photo img{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.photo:hover img{filter:brightness(.8);}
+.photo:hover{
+  transform:scale(1.15); /* Slightly larger zoom for emphasis */
+  z-index:10;
+}
+
+/* Caption */
+.preview{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:80px; /* Adjusted to fit better in smaller cards */
+  padding:6px 4px;
+  background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
+  transform:translateY(140%);
+  transition:.3s;
+  text-align:center;
+  font-size:.85rem; /* Smaller for balance */
+  white-space:normal;
+  color:#fff;
+  z-index:2;
+  pointer-events:none;
+}
+.photo:hover .preview{transform:translateY(0);}
+.category:last-child .preview{
+  transform:scaleY(-1) translateY(-140%);
+}
+.category:last-child .photo:hover .preview{transform:scaleY(-1) translateY(0);}
+</style>
 </head>
 <body>
 
-  <div id="gallery">
-    <!-- first section: title at top -->
-    <section class="section">
-      <h2 class="title top">Lake</h2>
-      <div class="cards">
-        <div class="card">
-          <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb" alt="Lake 1">
-        </div>
-        <div class="card">
-          <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba" alt="Lake 2">
-        </div>
-        <div class="card">
-          <img src="https://images.unsplash.com/photo-1470770841072-3d6d6c2b9361" alt="Lake 3">
-        </div>
-      </div>
-    </section>
+<header id="topbar">Photos</header>
 
-    <!-- second section: title at bottom, cards flipped -->
-    <section class="section">
-      <h2 class="title bottom">Sunset</h2>
-      <div class="cards">
-        <div class="card flipped">
-          <img src="https://images.unsplash.com/photo-1503803548691-8716805ae07f" alt="Sunset 1">
-        </div>
-        <div class="card flipped">
-          <img src="https://images.unsplash.com/photo-1495616811223-4d98c6e9c869" alt="Sunset 2">
-        </div>
-        <div class="card flipped">
-          <img src="https://images.unsplash.com/photo-1472131039891-3f982b6f68a4" alt="Sunset 3">
-        </div>
-      </div>
-    </section>
-  </div>
+<div class="gallery-container" id="gallery"></div>
 
-  <script>
-    (function() {
-      const gallery = document.getElementById('gallery');
-      const step = window.innerHeight / 2;      // move by half-screen
-      let index = 0;
-      const maxIndex = gallery.querySelectorAll('.section').length - 2;
+<script>
+(async () => {
+  /* ---------- LOAD JSON ---------- */
+  const data = await fetch('photos.json').then(r=>r.json());
+  const gallery = document.getElementById('gallery');
 
-      gallery.addEventListener('wheel', e => {
-        e.preventDefault();
-        if (e.deltaY > 0 && index < maxIndex) {
-          index++;
-        } else if (e.deltaY < 0 && index > 0) {
-          index--;
-        } else {
-          return;
-        }
-        gallery.scrollTo({ top: index * step, behavior: 'smooth' });
-      }, { passive: false });
-    })();
-  </script>
+  // Take only the first two categories
+  data.categories.slice(0,2).forEach((cat, index) => {
+    const sec=document.createElement('section');
+    sec.className='category';
+    sec.innerHTML=`
+      <h2>${cat.name}</h2>
+      <div class="hand">
+        ${cat.photos.slice(0,3).map(p=>`
+          <figure class="photo">
+            <img src="${p.url}" alt="${p.alt}" loading="lazy">
+            <figcaption class="preview">${p.title}</figcaption>
+          </figure>`).join('')}
+      </div>`;
+    gallery.appendChild(sec);
+  });
 
+  /* Neon borders */
+  document.querySelectorAll('.photo').forEach(card=>{
+    const h=Math.floor(Math.random()*360);
+    const neon=`hsl(${h} 100% 50%)`;
+    card.style.boxShadow=`inset 0 0 10px 2px ${neon},0 0 10px 4px ${neon}`; /* Slightly reduced shadow */
+  });
+})();
+</script>
 </body>
 </html>
