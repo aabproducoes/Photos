@@ -25,7 +25,7 @@ header{
   top:0;
   left:0;
   width:100%;
-  height:40px; /* Reduced height */
+  height:40px;
   line-height:40px;
   text-align:center;
   background:rgba(0,0,0,.85);
@@ -39,12 +39,12 @@ header{
   align-items:center;
   justify-content:center;
   height:100vh;
-  gap:5px; /* Tighter gap */
+  gap:5px;
 }
 .category{
   position:relative;
   width:100%;
-  height:38%; /* Tighter height */
+  height:38%;
   display:flex;
   justify-content:center;
   align-items:center;
@@ -56,12 +56,12 @@ header{
   position:absolute;
   left:50%;
   transform:translateX(-50%);
-  padding:6px 10px; /* Smaller padding */
+  padding:6px 10px;
   background:rgba(0,0,0,.6);
   border-radius:4px;
   pointer-events:none;
   text-align:center;
-  font-size:1rem; /* Smaller font */
+  font-size:1rem;
 }
 .category:first-child h2{top:0;}
 .category:last-child h2{bottom:0;}
@@ -70,12 +70,12 @@ header{
 .hand{
   display:flex;
   justify-content:center;
-  gap:8px; /* Tighter gap */
-  position:relative; /* Allow card overlap */
+  gap:8px;
+  position:relative;
 }
 .photo{
   position:relative;
-  width:160px; /* Smaller cards */
+  width:160px;
   aspect-ratio:1/1;
   overflow:hidden;
   border-radius:6px;
@@ -83,21 +83,21 @@ header{
   transform:rotate(0deg);
   transform-origin:center bottom;
   opacity:1;
-  transition:transform .5s ease, opacity .5s ease; /* Faster transition */
+  transition:transform .5s ease, opacity .5s ease;
 }
-/* Fan out cards with overlap */
+/* Fan out cards with increased overlap */
 .hand .photo:nth-child(1){
   transform:rotate(-6deg);
-  left:-10px; /* Slight overlap */
+  left:-20px; /* Increased overlap */
   z-index:1;
 }
 .hand .photo:nth-child(2){
   transform:rotate(0deg);
-  z-index:2;
+  z-index:3; /* Middle card on top */
 }
 .hand .photo:nth-child(3){
   transform:rotate(6deg);
-  left:10px; /* Slight overlap */
+  left:20px; /* Increased overlap */
   z-index:1;
 }
 /* Flip bottom category cards */
@@ -106,14 +106,14 @@ header{
 }
 .category:last-child .hand .photo:nth-child(1){
   transform:scaleY(-1) rotate(-6deg);
-  left:-10px;
+  left:-20px;
 }
 .category:last-child .hand .photo:nth-child(2){
   transform:scaleY(-1) rotate(0deg);
 }
 .category:last-child .hand .photo:nth-child(3){
   transform:scaleY(-1) rotate(6deg);
-  left:10px;
+  left:20px;
 }
 
 .photo img{
@@ -124,8 +124,8 @@ header{
 }
 .photo:hover img{filter:brightness(.8);}
 .photo:hover{
-  transform:scale(1.2); /* Larger zoom for emphasis */
-  z-index:10;
+  transform:scale(1.2); /* Maintain zoom */
+  z-index:10; /* Ensure hovered card is on top */
 }
 
 /* Caption */
@@ -133,13 +133,13 @@ header{
   position:absolute;
   left:0;
   right:0;
-  bottom:60px; /* Adjusted for smaller cards */
-  padding:5px 3px; /* Smaller padding */
+  bottom:60px;
+  padding:5px 3px;
   background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
   transform:translateY(140%);
   transition:.3s;
   text-align:center;
-  font-size:.8rem; /* Smaller font */
+  font-size:.8rem;
   white-space:normal;
   color:#fff;
   z-index:2;
@@ -184,7 +184,7 @@ header{
   document.querySelectorAll('.photo').forEach(card=>{
     const h=Math.floor(Math.random()*360);
     const neon=`hsl(${h} 100% 50%)`;
-    card.style.boxShadow=`inset 0 0 8px 1px ${neon},0 0 8px 2px ${neon}`; /* Reduced shadow */
+    card.style.boxShadow=`inset 0 0 8px 1px ${neon},0 0 8px 2px ${neon}`;
   });
 })();
 </script>
