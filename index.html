@@ -3,169 +3,85 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Photo Gallery</title>
+<title>Mirror-Hand Gallery</title>
 <style>
-/* ---------- RESET ---------- */
 *{box-sizing:border-box;margin:0;padding:0}
-body{
-  background:#000;
-  color:#fff;
-  font-family:sans-serif;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  min-height:100vh;
-  overflow:hidden; /* Prevent scrolling */
-}
+body{background:#000;color:#fff;font-family:sans-serif;overflow:hidden}
 
-/* ---------- TOP BAR ---------- */
-header{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:50px;
-  line-height:50px;
-  text-align:center;
-  background:rgba(0,0,0,.85);
-  z-index:1000;
-}
+/*--- container that pages by 50 vh ---*/
+.gallery{height:100vh;overflow:hidden;scroll-behavior:smooth}
 
-/* ---------- GALLERY / CATEGORY ---------- */
-.gallery-container{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  height:100vh;
-  gap:10px; /* Reduced gap to bring hands closer */
-}
-.category{
+/*--- each half-screen “frame” ---*/
+.frame{
+  height:50vh;                /* two frames fill the viewport      */
+  display:flex;align-items:center;justify-content:center;
   position:relative;
-  width:100%;
-  height:45%; /* Reduced height to tighten vertical centering */
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  perspective:800px;
 }
+.frame.flip img{transform:scaleY(-1)} /* mirror bottom hand          */
 
-/* Category titles */
-.category h2{
-  position:absolute;
-  left:50%;
-  transform:translateX(-50%);
-  padding:8px 12px;
-  background:rgba(0,0,0,.6);
-  border-radius:4px;
-  pointer-events:none;
-  text-align:center;
-  font-size:1.2rem; /* Slightly smaller for balance */
+/*--- 3-card “hand” centred in the frame ---*/
+.hand{display:flex;gap:12px}
+.card{
+  width:30vmin;aspect-ratio:3/4;   /* responsive cards               */
+  overflow:hidden;border-radius:6px;
 }
-.category:first-child h2{top:0;}
-.category:last-child h2{bottom:0;}
+.card img{width:100%;height:100%;object-fit:cover}
 
-/* ---------- PHOTO CARD ---------- */
-.hand{
-  display:flex;
-  justify-content:center;
-  gap:10px; /* Reduced gap between cards */
+/*--- section titles ---*/
+.title{
+  position:absolute;left:50%;transform:translateX(-50%);
+  font-size:1.4rem;background:rgba(0,0,0,.65);padding:4px 10px;
+  border-radius:4px
 }
-.photo{
-  position:relative;
-  width:180px; /* Slightly smaller for tighter centering */
-  aspect-ratio:1/1;
-  overflow:hidden;
-  border-radius:6px;
-  isolation:isolate;
-  transform:rotate(0deg);
-  transform-origin:center bottom;
-  opacity:1;
-  transition:transform .7s ease, opacity .6s ease;
-}
-/* Fan out cards */
-.hand .photo:nth-child(1){transform:rotate(-8deg);} /* Reduced rotation for compactness */
-.hand .photo:nth-child(2){transform:rotate(0deg);}
-.hand .photo:nth-child(3){transform:rotate(8deg);}
-/* Flip bottom category cards */
-.category:last-child .photo{
-  transform:scaleY(-1) rotate(0deg);
-}
-.category:last-child .hand .photo:nth-child(1){transform:scaleY(-1) rotate(-8deg);}
-.category:last-child .hand .photo:nth-child(2){transform:scaleY(-1) rotate(0deg);}
-.category:last-child .hand .photo:nth-child(3){transform:scaleY(-1) rotate(8deg);}
-
-.photo img{
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  display:block;
-}
-.photo:hover img{filter:brightness(.8);}
-.photo:hover{
-  transform:scale(1.15); /* Slightly larger zoom for emphasis */
-  z-index:10;
-}
-
-/* Caption */
-.preview{
-  position:absolute;
-  left:0;
-  right:0;
-  bottom:80px; /* Adjusted to fit better in smaller cards */
-  padding:6px 4px;
-  background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
-  transform:translateY(140%);
-  transition:.3s;
-  text-align:center;
-  font-size:.85rem; /* Smaller for balance */
-  white-space:normal;
-  color:#fff;
-  z-index:2;
-  pointer-events:none;
-}
-.photo:hover .preview{transform:translateY(0);}
-.category:last-child .preview{
-  transform:scaleY(-1) translateY(-140%);
-}
-.category:last-child .photo:hover .preview{transform:scaleY(-1) translateY(0);}
+.title.top{top:8px}
+.title.bottom{bottom:8px}
 </style>
 </head>
 <body>
 
-<header id="topbar">Photos</header>
-
-<div class="gallery-container" id="gallery"></div>
+<div class="gallery" id="gallery"></div>
 
 <script>
-(async () => {
-  /* ---------- LOAD JSON ---------- */
+(async ()=>{
   const data = await fetch('photos.json').then(r=>r.json());
-  const gallery = document.getElementById('gallery');
+  const container = document.getElementById('gallery');
 
-  // Take only the first two categories
-  data.categories.slice(0,2).forEach((cat, index) => {
-    const sec=document.createElement('section');
-    sec.className='category';
-    sec.innerHTML=`
-      <h2>${cat.name}</h2>
+  /* build frames in normal / mirrored pairs */
+  data.categories.forEach(cat=>{
+    /* ---- top frame ---- */
+    const top = document.createElement('section');
+    top.className='frame';
+    top.innerHTML=`
+      <div class="title top">${cat.name}</div>
       <div class="hand">
         ${cat.photos.slice(0,3).map(p=>`
-          <figure class="photo">
-            <img src="${p.url}" alt="${p.alt}" loading="lazy">
-            <figcaption class="preview">${p.title}</figcaption>
-          </figure>`).join('')}
+          <figure class="card"><img src="${p.url}" alt="${p.alt}"></figure>`
+        ).join('')}
       </div>`;
-    gallery.appendChild(sec);
+    container.appendChild(top);
+
+    /* ---- mirrored bottom frame ---- */
+    const bottom = document.createElement('section');
+    bottom.className='frame flip';
+    bottom.innerHTML=`
+      <div class="title bottom">${cat.name}</div>
+      <div class="hand">
+        ${cat.photos.slice(0,3).map(p=>`
+          <figure class="card"><img src="${p.url}" alt="${p.alt}"></figure>`
+        ).join('')}
+      </div>`;
+    container.appendChild(bottom);
   });
 
-  /* Neon borders */
-  document.querySelectorAll('.photo').forEach(card=>{
-    const h=Math.floor(Math.random()*360);
-    const neon=`hsl(${h} 100% 50%)`;
-    card.style.boxShadow=`inset 0 0 10px 2px ${neon},0 0 10px 4px ${neon}`; /* Slightly reduced shadow */
-  });
+  /* simple wheel paging (half-screen per wheel) */
+  const step = window.innerHeight/2;
+  let lock=false;
+  container.addEventListener('wheel',e=>{
+    e.preventDefault();if(lock)return;
+    lock=true;setTimeout(()=>lock=false,250);
+    const dir = e.deltaY>0 ? 1 : -1;
+    container.scrollBy({top:dir*step,behavior:'smooth'});
+  },{passive:false});
 })();
 </script>
 </body>
