@@ -2,302 +2,253 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Photo Gallery</title>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: #000; color: #fff; font-family: sans-serif; overflow-x: hidden; }
+    /* ---------- RESET ---------- */
+    * { box-sizing:border-box; margin:0; padding:0 }
+    body { background:#000; color:#fff; font-family:sans-serif; overflow:hidden }
 
+    /* ---------- CONTAINER ---------- */
     .gallery-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      padding: 20px;
       position: relative;
+      padding:20px;
+      display: flex; flex-direction: column; align-items: center;
+      min-height:100vh;
     }
 
     .category-title {
-      margin-bottom: 20px;
-      padding: 8px 16px;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 4px;
-      font-size: 1.5rem;
-      text-align: center;
+      margin-bottom:16px;
+      font-size:1.5rem;
+      background:rgba(0,0,0,.6);
+      padding:8px 16px;
+      border-radius:4px;
     }
 
+    /* ---------- GRID & PHOTOS ---------- */
     .photo-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(200px, 300px));
-      gap: 16px;
-      justify-content: center;
-      max-width: 1000px;
-      opacity: 1;
-      transition: opacity 0.3s ease;
+      display:grid;
+      grid-template-columns:repeat(3,minmax(200px,1fr));
+      gap:16px;
+      max-width:1000px;
+      position:relative;
     }
-    .photo-grid.transition {
-      opacity: 0;
-    }
-
     .photo {
-      position: relative;
-      aspect-ratio: 1/1;
-      overflow: hidden;
-      border-radius: 6px;
-      transition: transform 0.3s ease, opacity 0.3s ease;
-      opacity: 0;
-      transform: scale(0.95);
+      position:relative;
+      overflow:hidden;
+      border-radius:6px;
+      cursor:pointer;
+      transform-origin:50% 50%;
+      transition:transform .5s ease;
     }
-    .photo-grid.loaded .photo {
-      opacity: 1;
-      transform: scale(1);
+    /* Enter animation */
+    .photo.enter {
+      opacity:0;
+      transform: translateX(var(--dx,0)) rotateY(var(--ry,15deg)) scale(.8);
+      animation:photoIn .6s forwards;
+    }
+    @keyframes photoIn {
+      to { opacity:1; transform: translateX(0) rotateY(0) scale(1); }
+    }
+    /* Exit animation */
+    .photo.exit {
+      animation:photoOut .5s forwards;
+    }
+    @keyframes photoOut {
+      to { opacity:0; transform: translateX(var(--dx,0)) rotateY(var(--ry,-15deg)) scale(.8); }
     }
     .photo img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
+      display:block; width:100%; height:100%; object-fit:cover;
     }
-    .photo:hover {
-      transform: scale(1.05);
-    }
-    .photo:hover img {
-      filter: brightness(0.8);
-    }
-    .photo.empty {
-      background: #222;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: #777;
-      font-size: 0.9rem;
-      text-align: center;
-    }
-
     .preview {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      padding: 6px 4px;
-      background: linear-gradient(to top, rgba(0, 0, 0, 0.85), rgba(0, 0, 0, 0.3));
-      transform: translateY(100%);
-      transition: transform 0.3s ease;
-      text-align: center;
-      font-size: 0.9rem;
-      color: #fff;
-      z-index: 2;
+      position:absolute;left:0;right:0;bottom:0;
+      background:linear-gradient(to top,rgba(0,0,0,.85),rgba(0,0,0,.3));
+      padding:6px; text-align:center; font-size:.9rem;
+      color:#fff; transform:translateY(100%);
+      transition:transform .3s;
+      pointer-events:none; z-index:2;
     }
     .photo:hover .preview {
-      transform: translateY(0);
+      transform:translateY(0);
     }
 
+    /* ---------- NAVIGATION ---------- */
     .nav {
-      position: fixed;
-      top: 50%;
-      left: 10px;
-      right: 10px;
-      display: flex;
-      justify-content: space-between;
-      transform: translateY(-50%);
-      z-index: 1001;
+      position:fixed; top:50%; left:0; right:0;
+      display:flex; justify-content:space-between;
+      padding:0 20px;
+      transform:translateY(-50%);
+      pointer-events:none;
     }
     .nav button {
-      width: 40px;
-      height: 40px;
-      border: none;
-      border-radius: 50%;
-      background: #0ff;
-      color: #000;
-      font-size: 1.2rem;
-      cursor: pointer;
-      transition: background 0.3s;
+      pointer-events:all;
+      background:#0ff; border:none; border-radius:50%;
+      width:40px; height:40px; font-size:1.2rem; cursor:pointer;
+      transition:background .3s;
     }
-    .nav button:hover:not(:disabled) {
-      background: #5ff;
+    .nav button:disabled { background:#333; color:#777; cursor:not-allowed }
+    .nav button:hover:not(:disabled) { background:#5ff }
+    /* category labels */
+    .nav .label {
+      position:absolute; width:100px; text-align:center;
+      font-size:.9rem; background:rgba(0,0,0,.6);
+      padding:4px 8px; border-radius:4px;
     }
-    .nav button:disabled {
-      background: #333;
-      color: #777;
-      cursor: not-allowed;
-    }
+    #leftLabel { left:60px; transform:translateY(-50%) }
+    #rightLabel{ right:60px; transform:translateY(-50%) }
 
-    .loading, .error {
-      font-size: 1.2rem;
-      text-align: center;
-      padding: 20px;
+    /* ---------- LIGHTBOX ---------- */
+    #lightbox {
+      position:fixed; top:0; left:0; right:0; bottom:0;
+      background:rgba(0,0,0,.9);
+      display:none; align-items:center; justify-content:center;
+      z-index:2000; flex-direction:column;
     }
-    .loading::before {
-      content: '';
-      display: inline-block;
-      width: 20px;
-      height: 20px;
-      border: 2px solid #0ff;
-      border-top-color: transparent;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-      margin-right: 10px;
+    #lightbox img {
+      max-width:90%; max-height:80%; border-radius:8px;
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    #lightbox .lb-nav {
+      position:absolute; top:50%; width:100%;
+      display:flex; justify-content:space-between;
+      padding:0 20px; transform:translateY(-50%);
+    }
+    #lightbox .lb-nav button {
+      background:rgba(255,255,255,.3); border:none;
+      width:50px; height:50px; border-radius:50%;
+      font-size:2rem; color:#fff; cursor:pointer;
+    }
+    #lightbox .close {
+      position:absolute; top:20px; right:20px;
+      background:rgba(255,255,255,.3); border:none;
+      width:40px; height:40px; border-radius:50%;
+      font-size:1.5rem; color:#fff; cursor:pointer;
     }
   </style>
 </head>
 <body>
   <div class="gallery-container" id="gallery">
-    <div class="loading">Loading photos...</div>
+    <div class="loading">Loading photos…</div>
   </div>
 
   <div class="nav">
-    <button id="left" disabled aria-label="Previous three photos">←</button>
-    <button id="right" disabled aria-label="Next three photos">→</button>
+    <button id="left" disabled>←</button>
+    <div id="leftLabel" class="label"></div>
+    <button id="right" disabled>→</button>
+    <div id="rightLabel" class="label"></div>
+  </div>
+
+  <div id="lightbox">
+    <button class="close" aria-label="Close">×</button>
+    <div class="lb-nav">
+      <button id="lb-prev" aria-label="Previous">←</button>
+      <button id="lb-next" aria-label="Next">→</button>
+    </div>
+    <img src="" alt="" id="lb-img">
+    <div class="preview" id="lb-caption"></div>
   </div>
 
   <script>
-    (async () => {
-      const gallery = document.getElementById('gallery');
-      const leftBtn = document.getElementById('left');
-      const rightBtn = document.getElementById('right');
+  (async()=>{
+    const gallery = document.getElementById('gallery');
+    const leftBtn = document.getElementById('left');
+    const rightBtn= document.getElementById('right');
+    const leftLbl = document.getElementById('leftLabel');
+    const rightLbl= document.getElementById('rightLabel');
+    const lb       = document.getElementById('lightbox');
+    const lbImg    = document.getElementById('lb-img');
+    const lbCap    = document.getElementById('lb-caption');
+    const lbPrev   = document.getElementById('lb-prev');
+    const lbNext   = document.getElementById('lb-next');
+    const lbClose  = lb.querySelector('.close');
 
-      // Load photos.json
-      let data;
-      try {
-        console.log('Fetching photos.json...');
-        data = await fetch('photos.json').then(r => r.json());
-        console.log('Data loaded:', data);
-      } catch (error) {
-        console.error('Error fetching photos:', error);
-        gallery.innerHTML = '<div class="error">Failed to load photos. Please try again later.</div>';
-        return;
+    let data;
+    try {
+      data = await fetch('photos.json').then(r=>r.json());
+    } catch {
+      gallery.innerHTML = '<div class="error">Failed to load.</div>';
+      return;
+    }
+    let catIdx=0, start=0, per=3;
+    let lightIdx=0;
+
+    function updateLabels(){
+      leftLbl.textContent  = data.categories[catIdx-1]?.name || '';
+      rightLbl.textContent = data.categories[catIdx+1]?.name || '';
+    }
+
+    function render(){
+      gallery.innerHTML = `
+        <div class="category-title">${data.categories[catIdx].name}</div>
+        <div class="photo-grid"></div>`;
+      const grid = gallery.querySelector('.photo-grid');
+      const photos = data.categories[catIdx].photos.slice(start, start+per);
+      while(photos.length<per) photos.push({url:'',alt:'',title:''});
+      photos.forEach((p,i)=>{
+        const fig = document.createElement('figure');
+        fig.className='photo enter';
+        fig.style.setProperty('--dx', (i-per/2)*50+'px');
+        fig.style.setProperty('--ry', (i-per/2)*15+'deg');
+        if(!p.url) {
+          fig.classList.add('empty');
+          fig.textContent='No Image';
+        } else {
+          fig.innerHTML=`
+            <img src="${p.url}" alt="${p.alt}">
+            <figcaption class="preview">${p.title}</figcaption>`;
+          fig.addEventListener('click',()=>{
+            lightIdx = start + i;
+            openLightbox();
+          });
+        }
+        grid.append(fig);
+      });
+      leftBtn.disabled  = (catIdx===0 && start===0);
+      rightBtn.disabled = (catIdx===data.categories.length-1 && start+per>=data.categories[catIdx].photos.length);
+      updateLabels();
+    }
+
+    function page(dir){
+      const cat = data.categories[catIdx].photos.length;
+      const nextStart = start + dir*per;
+      if(nextStart>=0 && nextStart+per<=cat){
+        start = nextStart;
+      } else if(dir>0 && catIdx<data.categories.length-1){
+        catIdx++; start=0;
+      } else if(dir<0 && catIdx>0){
+        catIdx--; start = Math.max(0, data.categories[catIdx].photos.length-per);
       }
-
-      // Validate data
-      if (!data.categories || data.categories.length === 0) {
-        console.warn('No categories found in photos.json');
-        gallery.innerHTML = '<div class="error">No photos available.</div>';
-        return;
-      }
-
-      // State
-      let currentCategory = 0;
-      let currentStartIndex = 0;
-      const photosPerPage = 3;
-
-      // Render photos
-      const renderPhotos = () => {
-        console.log('Rendering: category=', currentCategory, 'startIndex=', currentStartIndex);
-        const category = data.categories[currentCategory];
-        if (!category || !category.photos) {
-          console.warn('Invalid category:', category);
-          gallery.innerHTML = '<div class="error">Invalid category data.</div>';
-          return;
-        }
-
-        const photos = category.photos.slice(currentStartIndex, currentStartIndex + photosPerPage);
-        console.log('Photos to render:', photos);
-
-        // Pad with empty photos if needed
-        while (photos.length < photosPerPage) {
-          photos.push({ url: '', alt: '', title: '' });
-        }
-
-        gallery.innerHTML = `
-          <h2 class="category-title">${category.name}</h2>
-          <div class="photo-grid">
-            ${photos.map(p => `
-              <figure class="photo${p.url ? '' : ' empty'}">
-                ${p.url ? `
-                  <img src="${p.url}" alt="${p.alt}" loading="lazy">
-                  <figcaption class="preview">${p.title}</figcaption>
-                ` : 'No image'}
-              </figure>
-            `).join('')}
-          </div>
-        `;
-
-        // Add neon borders
-        document.querySelectorAll('.photo:not(.empty)').forEach(card => {
-          const h = Math.floor(Math.random() * 360);
-          card.style.boxShadow = `inset 0 0 12px 2px hsl(${h} 100% 50%), 0 0 12px 4px hsl(${h} 100% 50%)`;
-        });
-
-        // Add loaded class for animations
-        setTimeout(() => gallery.querySelector('.photo-grid')?.classList.add('loaded'), 10);
-
-        // Update button states
-        const totalPhotos = category.photos.length;
-        leftBtn.disabled = currentStartIndex === 0 && currentCategory === 0;
-        rightBtn.disabled = currentStartIndex + photosPerPage >= totalPhotos && currentCategory === data.categories.length - 1;
-        console.log('Button states: left=', leftBtn.disabled, 'right=', rightBtn.disabled);
-      };
-
-      // Navigation
-      leftBtn.addEventListener('click', () => {
-        console.log('Left button clicked');
-        if (currentStartIndex > 0) {
-          currentStartIndex -= photosPerPage;
-        } else if (currentCategory > 0) {
-          currentCategory--;
-          currentStartIndex = Math.max(0, data.categories[currentCategory].photos.length - photosPerPage);
-        }
-        gallery.classList.add('transition');
-        setTimeout(() => {
-          renderPhotos();
-          gallery.classList.remove('transition');
-        }, 300);
+      // animate out
+      document.querySelectorAll('.photo').forEach((el,i)=>{
+        el.classList.add('exit');
       });
+      setTimeout(()=>{
+        render();
+      },300);
+    }
 
-      rightBtn.addEventListener('click', () => {
-        console.log('Right button clicked');
-        const category = data.categories[currentCategory];
-        if (currentStartIndex + photosPerPage < category.photos.length) {
-          currentStartIndex += photosPerPage;
-        } else if (currentCategory < data.categories.length - 1) {
-          currentCategory++;
-          currentStartIndex = 0;
-        }
-        gallery.classList.add('transition');
-        setTimeout(() => {
-          renderPhotos();
-          gallery.classList.remove('transition');
-        }, 300);
-      });
+    function openLightbox(){
+      const curr = data.categories[catIdx].photos[lightIdx];
+      lbImg.src = curr.url;
+      lbCap.textContent = curr.title;
+      lb.style.display='flex';
+    }
+    function closeLightbox(){
+      lb.style.display='none';
+    }
+    lbPrev.onclick = ()=>{ lightIdx = Math.max(0, lightIdx-1); openLightbox() };
+    lbNext.onclick = ()=>{ lightIdx = Math.min(data.categories[catIdx].photos.length-1, lightIdx+1); openLightbox() };
+    lbClose.onclick = closeLightbox;
+    document.addEventListener('keydown',e=>{
+      if(e.key==='Escape') closeLightbox();
+      if(e.key==='ArrowLeft'&&!leftBtn.disabled) leftBtn.click();
+      if(e.key==='ArrowRight'&&!rightBtn.disabled) rightBtn.click();
+    });
 
-      // Keyboard navigation
-      document.addEventListener('keydown', e => {
-        if (e.key === 'ArrowLeft' && !leftBtn.disabled) {
-          console.log('ArrowLeft pressed');
-          leftBtn.click();
-        }
-        if (e.key === 'ArrowRight' && !rightBtn.disabled) {
-          console.log('ArrowRight pressed');
-          rightBtn.click();
-        }
-      });
+    leftBtn.onclick  = ()=>page(-1);
+    rightBtn.onclick = ()=>page(1);
 
-      // Swipe support
-      let touchStartX = 0;
-      gallery.addEventListener('touchstart', e => {
-        touchStartX = e.touches[0].clientX;
-      });
-      gallery.addEventListener('touchend', e => {
-        const touchEndX = e.changedTouches[0].clientX;
-        const delta = touchStartX - touchEndX;
-        if (delta > 50 && !rightBtn.disabled) {
-          console.log('Swipe right');
-          rightBtn.click();
-        }
-        if (delta < -50 && !leftBtn.disabled) {
-          console.log('Swipe left');
-          leftBtn.click();
-        }
-      });
-
-      // Initialize
-      console.log('Initializing gallery');
-      renderPhotos();
-    })();
+    render();
+  })();
   </script>
 </body>
 </html>
